@@ -9,7 +9,6 @@ Utils::Utils()
 	mouseX = (bSize + 1) * fSize / 2;
 	mouseY = (bSize + 1) * fSize / 2;
 	ship_pattern = vector<char>{ '1','1','1','2','2','3','3','4' };
-
 	al_install_audio();
 	al_init_acodec_addon();
 	al_reserve_samples(2);

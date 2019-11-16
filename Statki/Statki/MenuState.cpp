@@ -84,6 +84,7 @@ void MenuState::resumeButtonOnClick() {
 		*state = gameState;
 	else {
 		*state = shipSettingState;
+		shipSettingState->set_buttons_to_display();
 		if (shipSettingState->get_ship_selected() == NULL)
 			shipSettingState->set_ship_selected(new Ship(u, vector<Field>{}, 'i', 0, 0));
 

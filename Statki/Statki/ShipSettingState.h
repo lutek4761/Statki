@@ -18,11 +18,19 @@ class MenuState;
 class ShipSettingState : public State
 {
 private:
+
 	Field* field_selected;
+	vector<Button*>* buttonsToDisplay;
 	vector<Button*> creationButtons;
+	vector<Button*> shipSettingButtons;
+
+	/***********BUTTONS************/
 	Button menuButton;
+	Button startGameButton;
 	Button createShipButton;
 	Button deleteShipButton;
+	Button confirmButton;
+
 	ALLEGRO_FONT* font30, * font20;
 	ALLEGRO_SAMPLE* clicked, * selected;
 	bool guard1, guard2, guard3;
@@ -42,9 +50,12 @@ private:
 
 	//****FUNKCJE*****
 	void menuButtonOnClick();
+	void startGameButtonOnClick();
 	void createShipButtonOnClick();
 	void deleteShipButtonOnClick();
-	void assingFunctions();
+	void confirmButtonOnClick();
+	void assignCreationButtonsFunctions();
+	void assignShipSettingButtonsFunctions();
 
 	void handle_ship_creation();
 	void handle_ship_setting();
@@ -84,5 +95,6 @@ public:
 	void assignStates(State**, GameState*, MenuState*);
 	void init_customizing_fields_vector();
 	void set_ships_quantity();
+	void set_buttons_to_display();
 
 };

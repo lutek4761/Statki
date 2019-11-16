@@ -8,20 +8,26 @@ ShipSettingState::ShipSettingState(Utils& u, Board& b)
 	ship_selected(NULL), guard1(true), guard2(true), guard3(true), customBoard(Board(u, 5, 5, 500, 75)),
 	quantity1(0), quantity2(0), quantity3(0), quantity4(0), quantity5(0), field_selected(NULL)
 {
-	menuButton = Button(750, 400, 150, 50, "Menu", ID::MENU);
-	createShipButton = Button(499, 300, 100, 50, "Create", ID::CREATESHIP);
-	deleteShipButton = Button(601, 300, 100, 50, "Delete", ID::DELETESHIP);
-	creationButtons = vector<Button*>{ &menuButton, &createShipButton, &deleteShipButton };
-	assingFunctions();
-
 	font30 = al_load_font("Arial.ttf", 30, 0);
 	font20 = al_load_font("Arial.ttf", 20, 0);
 	clicked = u.get_clicked_sound();
 	selected = u.get_selected_sound();
 	srand(time(NULL));
 
+	/****************************************BUTTONS****************************************/
+	menuButton = Button(750, 400, 150, 50, "Menu", ID::MENU);
+	confirmButton = Button(750, 325, 150, 50, "Confirm", ID::CONFIRM);
+	startGameButton = Button(550, 400, 150, 50, "Start game", ID::STARTGAME);
+	createShipButton = Button(499, 300, 100, 50, "Create", ID::CREATESHIP);
+	deleteShipButton = Button(601, 300, 100, 50, "Delete", ID::DELETESHIP);
+	creationButtons = vector<Button*>{ &menuButton, &createShipButton, &deleteShipButton, &confirmButton };
+	shipSettingButtons = vector<Button*>{ &menuButton, &startGameButton };
 
+	buttonsToDisplay = &creationButtons;
+	assignCreationButtonsFunctions();
+	assignShipSettingButtonsFunctions();
 
+	startGameButton.canBeClicked = false;
 }
 
 ShipSettingState::~ShipSettingState() {}
@@ -44,7 +50,7 @@ void ShipSettingState::render() {
 		for (Ship s : ships)
 			s.render();
 	}
-	for (Button* button : creationButtons)
+	for (Button* button : *buttonsToDisplay)
 		button->render();
 	if (field_selected != NULL)
 		al_draw_rectangle(field_selected->x_screen, field_selected->y_screen, field_selected->x_screen + u.get_fSize(),
@@ -60,7 +66,7 @@ void ShipSettingState::tick() {
 		handle_ship_setting();
 	}
 	if (is_placing_done() && ships.size() != 0) {
-		cout << "Koniec!\n";
+		startGameButton.canBeClicked = true;
 	}
 	last_mouse_pos_x = u.get_mouseX();
 	last_mouse_pos_y = u.get_mouseY();
@@ -370,9 +376,17 @@ void ShipSettingState::init_customizing_fields_vector() {
 	customBoard.init_vec();
 }
 
-/*BUTTONS FUNCTIONS*/
+/*****************************BUTTONS FUNCTIONS**************************************/
+void ShipSettingState::startGameButtonOnClick() {
+	*state = gameState;
+}
+
 void ShipSettingState::menuButtonOnClick() {
 	*state = menuState;
+}
+
+void ShipSettingState::confirmButtonOnClick() {
+	u.set_custom_ship_mode(false);
 }
 
 void ShipSettingState::createShipButtonOnClick() {
@@ -388,18 +402,33 @@ void ShipSettingState::deleteShipButtonOnClick() {
 		ship_selected->getFieldsVector().clear();
 }
 
-void ShipSettingState::assingFunctions() {
+void ShipSettingState::assignCreationButtonsFunctions() {
 	for (auto button : creationButtons) {
 		button->onClickListener = [this](Button* btn) {
 			switch (btn->getId()) {
-			case ID::MENU:
-				menuButtonOnClick();
-				break;
 			case ID::CREATESHIP:
 				createShipButtonOnClick();
 				break;
 			case ID::DELETESHIP:
 				deleteShipButtonOnClick();
+				break;
+			case ID::CONFIRM:
+				confirmButtonOnClick();
+				break;
+			}
+		};
+	}
+}
+
+void ShipSettingState::assignShipSettingButtonsFunctions() {
+	for (auto button : shipSettingButtons) {
+		button->onClickListener = [this](Button* btn) {
+			switch (btn->getId()) {
+			case ID::MENU:
+				menuButtonOnClick();
+				break;
+			case ID::STARTGAME:
+				startGameButtonOnClick();
 				break;
 			}
 		};
@@ -407,7 +436,7 @@ void ShipSettingState::assingFunctions() {
 }
 
 void ShipSettingState::handle_buttons_events() {
-	for (Button* b : creationButtons) {
+	for (Button* b : *buttonsToDisplay) {
 		//jeœli myszka najedzie na button
 		if (u.isMouseInRectangle(b->x, b->y, b->w, b->h) && !b->isActive && b->canBeClicked) {
 			if (u.get_sounds_on())
@@ -509,4 +538,8 @@ void ShipSettingState::substract_ship_quantity() {
 	if (ship_selected->getFieldsVector().size() == 3) quantity3--;
 	if (ship_selected->getFieldsVector().size() == 2) quantity2--;
 	if (ship_selected->getFieldsVector().size() == 1) quantity1--;
+}
+
+void ShipSettingState::set_buttons_to_display() {
+	buttonsToDisplay = u.get_custom_ship_mode() ? &creationButtons : &shipSettingButtons;
 }
