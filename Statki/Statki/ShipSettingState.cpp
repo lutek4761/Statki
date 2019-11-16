@@ -387,6 +387,7 @@ void ShipSettingState::menuButtonOnClick() {
 
 void ShipSettingState::confirmButtonOnClick() {
 	u.set_custom_ship_mode(false);
+	buttonsToDisplay = &shipSettingButtons;
 }
 
 void ShipSettingState::createShipButtonOnClick() {
