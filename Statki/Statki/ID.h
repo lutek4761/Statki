@@ -1,0 +1,24 @@
+#pragma once
+
+enum class ID {
+	CUSTOMCHECKBOX,
+	SOUNDCHECKBOX,
+	APPLY,
+	MENU,
+	CREATESHIP,
+	DELETESHIP,
+	PLAY,
+	OPTIONS,
+	EXIT,
+	BACK,
+	INC1,
+	DEC1,
+	INC2,
+	DEC2,
+	INC3,
+	DEC3,
+	INC4,
+	DEC4,
+	INC5,
+	DEC5,
+};
