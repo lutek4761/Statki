@@ -3,12 +3,15 @@
 unsigned Ship::counter = 0;
 
 Ship::Ship(Utils& u, vector<Field> b, char category, int x_coord_offset, int y_coord_offset)
-	:u(u), board_fields(b), category(category), x_coord_offset(x_coord_offset), y_coord_offset(y_coord_offset), adjacent_fields(vector<Field>{}), placed(false), id(counter)
+	:u(u), board_fields(b), category(category), x_coord_offset(x_coord_offset), y_coord_offset(y_coord_offset), adjacent_fields(vector<Field>{}), placed(false),
+	id(counter)
 {
 	init_fields();
 	for (Field& f : fields)
 		f.set_color(255, 128, 0);
 	counter++;
+
+	set_binary_representation(category);
 }
 
 void Ship::init_fields() {
@@ -41,6 +44,7 @@ void Ship::render() {
 }
 
 void Ship::set_adjacent_fields() {
+	// cout << board_fields.size();
 	adjacent_fields.clear();
 	for (Field f : fields) {
 		if (f.x - 1 >= 0 && f.y - 1 >= 0) {
@@ -91,6 +95,25 @@ int Ship::coord(int x, int y) {
 void Ship::set_color(int r, int g, int b) {
 	for (Field& f : fields)
 		f.set_color(r, g, b);
+}
+
+void Ship::set_binary_representation(char pattern) {
+	if (pattern == '1') binary_representation = vector<int>{ 0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0 };
+	if (pattern == '2') binary_representation = vector<int>{ 0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0 };
+	if (pattern == '3') binary_representation = vector<int>{ 0,0,0,0,0,0,0,0,0,0,0,1,1,1,0,0,0,0,0,0,0,0,0,0,0 };
+	if (pattern == '4') binary_representation = vector<int>{ 0,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0 };
+	if (pattern == '5') binary_representation = vector<int>{ 0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0 };
+	if (pattern == 'i') binary_representation = vector<int>{ 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 };
+}
+
+void Ship::rotate_binary_representation() {
+	vector<int>* rotatedVec = new vector<int>();
+	for (int y = 4; y >= 0; --y) 
+		for (int x = 0; x < 5; ++x) 
+			rotatedVec->push_back(binary_representation.at(x * 5 + y));
+
+	binary_representation = *rotatedVec;
+	delete rotatedVec;
 }
 
 bool Ship::operator==(const Ship& s) const {

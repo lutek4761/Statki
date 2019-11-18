@@ -18,7 +18,7 @@ class MenuState;
 class ShipSettingState : public State
 {
 private:
-
+	vector<Icon> icons;
 	Field* field_selected;
 	vector<Button*>* buttonsToDisplay;
 	vector<Button*> creationButtons;
@@ -83,15 +83,17 @@ private:
 	unsigned max_ship_size_to_create();
 	unsigned min_ship_size_to_create();
 	void substract_ship_quantity();
+	void manage_creation_buttons();
 public:
 	ShipSettingState(Utils& u, Board& b);
 	~ShipSettingState();
 	virtual void render();
 	virtual void tick();
+	void prepare_ships_for_setting();
 	vector<Ship>& get_ships() { return ships; }
 	Ship* get_ship_selected() { return ship_selected; }
+	void delete_icons() { icons.clear(); Icon::set_y_position(40); }
 	void set_ship_selected(Ship* val) { ship_selected = val; }
-	void prepare_ships_for_setting();
 	void assignStates(State**, GameState*, MenuState*);
 	void init_customizing_fields_vector();
 	void set_ships_quantity();

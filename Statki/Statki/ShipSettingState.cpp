@@ -13,7 +13,7 @@ ShipSettingState::ShipSettingState(Utils& u, Board& b)
 	clicked = u.get_clicked_sound();
 	selected = u.get_selected_sound();
 	srand(time(NULL));
-
+	
 	/****************************************BUTTONS****************************************/
 	menuButton = Button(750, 400, 150, 50, "Menu", ID::MENU);
 	confirmButton = Button(750, 325, 150, 50, "Confirm", ID::CONFIRM);
@@ -28,6 +28,7 @@ ShipSettingState::ShipSettingState(Utils& u, Board& b)
 	assignShipSettingButtonsFunctions();
 
 	startGameButton.canBeClicked = false;
+	
 }
 
 ShipSettingState::~ShipSettingState() {}
@@ -55,6 +56,8 @@ void ShipSettingState::render() {
 	if (field_selected != NULL)
 		al_draw_rectangle(field_selected->x_screen, field_selected->y_screen, field_selected->x_screen + u.get_fSize(),
 			field_selected->y_screen + u.get_fSize(), al_map_rgb(255, 0, 0), 2);
+	for (Icon& icon : icons)
+		icon.render();
 }
 
 void ShipSettingState::tick() {
@@ -65,9 +68,11 @@ void ShipSettingState::tick() {
 	else {
 		handle_ship_setting();
 	}
-	if (is_placing_done() && ships.size() != 0) {
+	if (is_placing_done() && ships.size() != 0) 
 		startGameButton.canBeClicked = true;
-	}
+	else 
+		startGameButton.canBeClicked = false;
+	
 	last_mouse_pos_x = u.get_mouseX();
 	last_mouse_pos_y = u.get_mouseY();
 }
@@ -114,28 +119,6 @@ void ShipSettingState::match_ship_screen_position() {
 	}
 }
 
-void ShipSettingState::prepare_ships_for_setting() {
-	ships.clear();
-	int y = 0;
-	int x = 11;
-	char last_pattern = u.get_ship_pattern().at(0);
-	for (char pattern : u.get_ship_pattern()) {
-		if (pattern != last_pattern) {
-			if (y > 6) {
-				y = 1;
-				x += 5;
-			}
-			else {
-				y += 2;
-				last_pattern = pattern;
-			}
-		}
-
-		ships.push_back(Ship(u, b.get_fields(), pattern, x, y));
-
-	}
-}
-
 bool ShipSettingState::is_adjacent() const {
 	// czy statek przylega do innego statku
 	for (Field f : ship_selected->getFieldsVector()) {
@@ -168,6 +151,7 @@ void ShipSettingState::rotate_ship() {
 
 		for (int i = 0; i < 3; i++) {
 			rotateArray(vec);
+			ship_selected->rotate_binary_representation();
 			fitNewCoords(mouse_board_pos_x, mouse_board_pos_y, vec);
 			if (can_rotate_ship(vec)) {
 				replace_ships_vectors(ship_selected, vec);
@@ -220,15 +204,11 @@ void ShipSettingState::fitNewCoords(int middle_point_x, int middle_point_y, vect
 
 void ShipSettingState::rotateArray(vector<Field*>& vec) {
 	vector<Field*>* rotatedVec = new vector<Field*>();
-	for (int y = 8; y >= 0; --y) {
-		for (int x = 0; x < 9; ++x) {
+	for (int y = 8; y >= 0; --y) 
+		for (int x = 0; x < 9; ++x) 
 			rotatedVec->push_back(vec.at(x * 9 + y));
-		}
-	}
-	for (int y = 0; y < 9; ++y)
-		for (int x = 0; x < 9; ++x)
-			vec.at(y * 9 + x) = rotatedVec->at(y * 9 + x);
 
+	vec = *rotatedVec;
 	delete rotatedVec;
 }
 
@@ -244,9 +224,8 @@ vector<Field*> ShipSettingState::create_array(int middle_point_x, int middle_poi
 					break;
 				}
 
-			if (!added) {
+			if (!added) 
 				vec->push_back(NULL);
-			}
 			added = false;
 		}
 	}
@@ -362,7 +341,7 @@ void ShipSettingState::handle_ship_setting() {
 			ship_selected->set_placed(true);
 		}
 		else { // jesli statku nie mozna umiescic
-			ship_selected->setFieldsVector(last_ship_position);
+			ship_selected->set_fields_vector(last_ship_position);
 			ship_selected->set_adjacent_fields(last_ship_adjacent_fields);
 		}
 
@@ -374,6 +353,15 @@ void ShipSettingState::handle_ship_setting() {
 
 void ShipSettingState::init_customizing_fields_vector() {
 	customBoard.init_vec();
+}
+
+void ShipSettingState::prepare_ships_for_setting() {
+	ships.clear();
+
+	for (char pattern : u.get_ship_pattern()) {
+		ships.push_back(Ship(u, vector<Field>{}, pattern, 0, 0));
+		
+	}
 }
 
 /*****************************BUTTONS FUNCTIONS**************************************/
@@ -393,14 +381,19 @@ void ShipSettingState::confirmButtonOnClick() {
 void ShipSettingState::createShipButtonOnClick() {
 	if (ship_selected->getFieldsVector().size() != 0) {
 		substract_ship_quantity();
+		ship_selected->set_board_fields(b.get_fields());
+		icons.push_back(Icon(ship_selected));
 		ships.push_back(*ship_selected);
 		ship_selected = new Ship(u, vector<Field>{}, 'i', 0, 0);
 	}
 }
 
 void ShipSettingState::deleteShipButtonOnClick() {
-	if (ship_selected != NULL)
+	if (ship_selected != NULL) {
 		ship_selected->getFieldsVector().clear();
+		ship_selected->reset_binary_representation();
+	}
+		
 }
 
 void ShipSettingState::assignCreationButtonsFunctions() {
@@ -463,19 +456,32 @@ void ShipSettingState::handle_buttons_events() {
 
 void ShipSettingState::handle_ship_creation() {
 	field_selected = customBoard.getFieldSelectedByMouse();
-	createShipButton.canBeClicked = ship_selected->getFieldsVector().size() < min_ship_size_to_create() ? false : true;
-	deleteShipButton.canBeClicked = ship_selected->getFieldsVector().size() == 0 ? false : true;
+	manage_creation_buttons();
 	if (field_selected != NULL && u.get_mouse_clicked1() && can_append_field_to_ship(field_selected, ship_selected)) {
 		if (!ship_selected->field_in_vec(*field_selected, ship_selected->getFieldsVector())) {
 			Field* newField = new Field(field_selected->x, field_selected->y, customBoard.get_x_offset(), customBoard.get_y_offset(), u.get_fSize());
+			ship_selected->get_binary_representation().at(field_selected->y * customBoard.get_width() + field_selected->x) = 1;
 			newField->set_color(255, 128, 0);
 			ship_selected->getFieldsVector().push_back(*newField);
 		}
 	}
+}
 
+void ShipSettingState::manage_creation_buttons() {
+	deleteShipButton.canBeClicked = ship_selected->getFieldsVector().size() == 0 ? false : true;
+	if ((ship_selected->getFieldsVector().size() == 0) or
+		(ship_selected->getFieldsVector().size() == 1 and quantity1 == 0) or
+		(ship_selected->getFieldsVector().size() == 2 and quantity2 == 0) or
+		(ship_selected->getFieldsVector().size() == 3 and quantity3 == 0) or
+		(ship_selected->getFieldsVector().size() == 4 and quantity4 == 0) or
+		(ship_selected->getFieldsVector().size() == 5 and quantity5 == 0)) createShipButton.canBeClicked = false;
+	else createShipButton.canBeClicked = true;
 }
 
 bool ShipSettingState::can_append_field_to_ship(Field* f, Ship* s) {
+	if (quantity1 == 0 and quantity2 == 0 and quantity3 == 0 and quantity4 == 0 and quantity5 == 0)
+		return false;
+
 	if (f == NULL or s == NULL)
 		return false;
 

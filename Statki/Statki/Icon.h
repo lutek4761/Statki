@@ -2,18 +2,18 @@
 #include "Square.h"
 #include <vector>
 #include "Field.h"
+#include "Ship.h"
 using namespace std;
 class Icon
 {
 private:
-	int x, y, w;
-	vector<Field> fields;
-	vector<Square> squares;
-	vector<int> pattern;
-	void parseToBinary();
-	void createSquares();
+	static int y_position;
+	int y, x, w;
+	Ship* ship_pointer;
 public:
-	Icon(vector<Field>);
+	Icon(Ship* ship_pointer);
 	void render();
+	static int& get_y_position() { return y_position; }
+	static void set_y_position(int val) { y_position = val; }
 };
 

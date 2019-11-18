@@ -79,7 +79,6 @@ void MenuState::tick() {
 }
 
 void MenuState::resumeButtonOnClick() {
-	cout << "xd";
 	if (u.get_ship_setting_done())
 		*state = gameState;
 	else {
@@ -92,10 +91,11 @@ void MenuState::resumeButtonOnClick() {
 			if (shipsQuantityChanged || runForTheFirstTime) {
 				shipSettingState->init_customizing_fields_vector();
 				shipSettingState->set_ships_quantity();
+				shipSettingState->delete_icons();
 			}
 		}
 		else {
-			shipSettingState->prepare_ships_for_setting(); // default
+			//shipSettingState->prepare_ships_for_setting(); // default
 		}
 
 		shipsQuantityChanged = false;
