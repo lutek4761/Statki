@@ -3,7 +3,9 @@
 #include <allegro5/allegro_acodec.h>
 #include <allegro5/allegro_audio.h>
 #include <iostream>
+#include "Player.h"
 #include <vector>
+
 using namespace std;
 class Utils
 {
@@ -16,11 +18,13 @@ private:
 	int mouseX, mouseY;
 	bool mouse_clicked1, mouse_clicked2, space_pressed, ship_setting_done, custom_ships_mode, sounds_on;
 	vector<char> ship_pattern;
-	ALLEGRO_SAMPLE* clicked, * selected;
+	ALLEGRO_SAMPLE* clicked, * selected, * hit, * splash;
 	unsigned quantity1, quantity2, quantity3, quantity4, quantity5;
 public:
 	ALLEGRO_SAMPLE* get_clicked_sound() { return clicked; }
 	ALLEGRO_SAMPLE* get_selected_sound() { return selected; }
+	ALLEGRO_SAMPLE* get_hit_sound() { return hit; }
+	ALLEGRO_SAMPLE* get_splash_sound() { return splash; }
 	unsigned get_quantity1() { return quantity1; }
 	unsigned get_quantity2() { return quantity2; }
 	unsigned get_quantity3() { return quantity3; }

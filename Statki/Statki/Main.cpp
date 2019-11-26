@@ -20,6 +20,7 @@ int main()
 
 	Utils u;
 	Board b1(u, u.get_bSize(), u.get_bSize(), u.get_fSize(), u.get_fSize());
+	Board b2(u, u.get_bSize(), u.get_bSize(), (u.get_bSize() +2) * u.get_fSize(), u.get_fSize());
 
 	ALLEGRO_DISPLAY* display = al_create_display(u.get_dispWidth(), u.get_dispHeight()); //Obraz
 	ALLEGRO_EVENT_QUEUE* queue = al_create_event_queue(); //Kolejka zdarzeñ
@@ -30,9 +31,9 @@ int main()
 	al_register_event_source(queue, al_get_timer_event_source(timer));
 
 	State* s;
-	GameState s_game(u);
+	GameState s_game(u, b1, b2);
 	MenuState s_menu(u);
-	ShipSettingState s_shipSet(u, b1);
+	ShipSettingState s_shipSet(u, b1, b2);
 
 	s = &s_menu;
 

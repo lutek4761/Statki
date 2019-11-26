@@ -11,5 +11,5 @@ public:
 	void set_color(int, int, int);
 	bool operator==(const Field&) const;
 	bool operator!=(const Field&) const;
-	void fit_render_coords();
+	void fit_render_coords(int x_offset, int y_offset);
 };

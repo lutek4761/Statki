@@ -3,9 +3,9 @@
 #include "GameState.h"
 using namespace std;
 
-ShipSettingState::ShipSettingState(Utils& u, Board& b)
-	:u(u), b(b), last_mouse_pos_x(u.get_mouseX()), last_mouse_pos_y(u.get_mouseY()),
-	ship_selected(NULL), guard1(true), guard2(true), guard3(true), customBoard(Board(u, 5, 5, 500, 75)),
+ShipSettingState::ShipSettingState(Utils& u, Board& b1, Board& b2)
+	:u(u), player_board(b1), computer_board(b2), last_mouse_pos_x(u.get_mouseX()), last_mouse_pos_y(u.get_mouseY()),
+	ship_selected(NULL), guard1(true), guard2(true), guard3(true), customizingBoard(Board(u, 5, 5, 500, 75)),
 	quantity1(0), quantity2(0), quantity3(0), quantity4(0), quantity5(0), field_selected(NULL)
 {
 	font30 = al_load_font("Arial.ttf", 30, 0);
@@ -34,9 +34,9 @@ ShipSettingState::ShipSettingState(Utils& u, Board& b)
 ShipSettingState::~ShipSettingState() {}
 
 void ShipSettingState::render() {
-	b.render();
+	player_board.render();
 	if (u.get_custom_ship_mode()) {
-		customBoard.render();
+		customizingBoard.render();
 		al_draw_textf(font30, al_map_rgb(255, 255, 255), 500, 25, 0, "%s", "CUSTOMIZING BOARD");
 		al_draw_textf(font30, al_map_rgb(255, 255, 255), 750, 25, 0, "%s", "QUANTITY");
 		al_draw_textf(font20, al_map_rgb(255, 255, 255), 750, 75, 0, "ONE-MASTED: %d", quantity1);
@@ -48,8 +48,11 @@ void ShipSettingState::render() {
 			ship_selected->render();
 	}
 	else {
-		for (Ship s : ships)
+		for (Ship s : player_ships) {
 			s.render();
+			s.render_adjacent_fields();
+		}
+			
 	}
 	for (Button* button : *buttonsToDisplay)
 		button->render();
@@ -68,7 +71,7 @@ void ShipSettingState::tick() {
 	else {
 		handle_ship_setting();
 	}
-	if (is_placing_done() && ships.size() != 0) 
+	if (is_placing_done() && player_ships.size() != 0) 
 		startGameButton.canBeClicked = true;
 	else 
 		startGameButton.canBeClicked = false;
@@ -78,7 +81,7 @@ void ShipSettingState::tick() {
 }
 
 Ship* ShipSettingState::select_ship() {
-	for (Ship& s : ships) {
+	for (Ship& s : player_ships) {
 		for (Field& f : s.getFieldsVector()) {
 			if (u.isMouseInRectangle(f.x_screen, f.y_screen, u.get_fSize(), u.get_fSize()))
 				return &s;
@@ -90,9 +93,9 @@ Ship* ShipSettingState::select_ship() {
 bool ShipSettingState::can_place_ship() const {
 	//czy wszystkie pola statku sa na planszy
 	for (Field& f : ship_selected->getFieldsVector()) {
-		if (f.x_screen < b.get_x_offset() - (int)u.get_fSize() / 2 || f.y_screen < b.get_y_offset() - (int)u.get_fSize() / 2
-			|| f.x_screen > b.get_x_offset() + (u.get_bSize() - 1) * u.get_fSize() + (int)u.get_fSize() / 2
-			|| f.y_screen > b.get_y_offset() + (u.get_bSize() - 1) * u.get_fSize() + (int)u.get_fSize() / 2)
+		if (f.x_screen < player_board.get_x_offset() - (int)u.get_fSize() / 2 || f.y_screen < player_board.get_y_offset() - (int)u.get_fSize() / 2
+			|| f.x_screen > player_board.get_x_offset() + (u.get_bSize() - 1) * (int)u.get_fSize() + (int)u.get_fSize() / 2
+			|| f.y_screen > player_board.get_y_offset() + (u.get_bSize() - 1) * (int)u.get_fSize() + (int)u.get_fSize() / 2)
 			return false;
 	}
 	return true;
@@ -107,23 +110,23 @@ void ShipSettingState::drag() {
 
 void ShipSettingState::set_ships_coords() {
 	for (Field& f : ship_selected->getFieldsVector()) {
-		f.x = ((int)f.x_screen - (int)b.get_x_offset() + (int)u.get_fSize() / 2) / (int)u.get_fSize();
-		f.y = ((int)f.y_screen - (int)b.get_y_offset() + (int)u.get_fSize() / 2) / (int)u.get_fSize();
+		f.x = ((int)f.x_screen - (int)player_board.get_x_offset() + (int)u.get_fSize() / 2) / (int)u.get_fSize();
+		f.y = ((int)f.y_screen - (int)player_board.get_y_offset() + (int)u.get_fSize() / 2) / (int)u.get_fSize();
 	}
 }
 
 void ShipSettingState::match_ship_screen_position() {
 	for (Field& f : ship_selected->getFieldsVector()) {
-		f.x_screen = b.get_x_offset() + f.x * u.get_fSize();
-		f.y_screen = b.get_y_offset() + f.y * u.get_fSize();
+		f.x_screen = player_board.get_x_offset() + f.x * u.get_fSize();
+		f.y_screen = player_board.get_y_offset() + f.y * u.get_fSize();
 	}
 }
 
-bool ShipSettingState::is_adjacent() const {
+bool ShipSettingState::is_adjacent(Ship* ship, vector<Ship> ships) const {
 	// czy statek przylega do innego statku
-	for (Field f : ship_selected->getFieldsVector()) {
+	for (Field f : ship->getFieldsVector()) {
 		for (Ship s : ships)
-			if (*ship_selected != s and (s.field_in_vec(f, s.get_adjacent_fields()) or (s.field_in_vec(f, s.getFieldsVector()) && s.is_placed())))
+			if (*ship != s and (s.field_in_vec(f, s.get_adjacent_fields()) or (s.field_in_vec(f, s.getFieldsVector()) && s.is_placed())))
 				return true;
 	}
 
@@ -131,15 +134,15 @@ bool ShipSettingState::is_adjacent() const {
 }
 
 bool ShipSettingState::is_placing_done() const {
-	for (Ship s : ships)
+	for (Ship s : player_ships)
 		if (!s.is_placed())
 			return false;
 	return true;
 }
 
 void ShipSettingState::calculate_mouse_board_pos() {
-	mouse_board_pos_x = (u.get_mouseX() - b.get_x_offset()) / u.get_fSize();
-	mouse_board_pos_y = (u.get_mouseY() - b.get_y_offset()) / u.get_fSize();
+	mouse_board_pos_x = (u.get_mouseX() - player_board.get_x_offset()) / u.get_fSize();
+	mouse_board_pos_y = (u.get_mouseY() - player_board.get_y_offset()) / u.get_fSize();
 }
 
 void ShipSettingState::rotate_ship() {
@@ -152,7 +155,7 @@ void ShipSettingState::rotate_ship() {
 		for (int i = 0; i < 3; i++) {
 			rotateArray(vec);
 			ship_selected->rotate_binary_representation();
-			fitNewCoords(mouse_board_pos_x, mouse_board_pos_y, vec);
+			fitNewCoords(player_board, mouse_board_pos_x, mouse_board_pos_y, vec);
 			if (can_rotate_ship(vec)) {
 				replace_ships_vectors(ship_selected, vec);
 				ship_selected->set_adjacent_fields();
@@ -169,7 +172,7 @@ bool ShipSettingState::can_rotate_ship(vector<Field*> vec) {
 			if (f->x < 0 or f->y < 0 or f->x >= u.get_bSize() or f->y >= u.get_bSize()) {
 				return false;
 			}
-			for (Ship s : ships) {
+			for (Ship s : player_ships) {
 				if (s.field_in_vec(*f, s.getFieldsVector()) and !s.field_in_vec(*f, ship_selected->getFieldsVector()))
 					return false;
 				if (s.field_in_vec(*f, s.get_adjacent_fields()) && s != *ship_selected) {
@@ -190,13 +193,13 @@ void ShipSettingState::replace_ships_vectors(Ship* s, vector<Field*> vec) {
 		}
 }
 
-void ShipSettingState::fitNewCoords(int middle_point_x, int middle_point_y, vector<Field*> vec) {
+void ShipSettingState::fitNewCoords(Board b, int middle_point_x, int middle_point_y, vector<Field*> vec) {
 	for (int y = 0; y < 9; ++y) {
 		for (int x = 0; x < 9; ++x) {
 			if (vec.at(y * 9 + x) != NULL) {
 				vec.at(y * 9 + x)->x = middle_point_x - 4 + x;
 				vec.at(y * 9 + x)->y = middle_point_y - 4 + y;
-				vec.at(y * 9 + x)->fit_render_coords();
+				vec.at(y * 9 + x)->fit_render_coords(b.get_x_offset(), b.get_y_offset());
 			}
 		}
 	}
@@ -219,7 +222,7 @@ vector<Field*> ShipSettingState::create_array(int middle_point_x, int middle_poi
 		for (int x = middle_point_x - 4; x < middle_point_x + 5; ++x) {
 			for (Field& f : ship_selected->getFieldsVector())
 				if (f.x == x && f.y == y) {
-					vec->push_back(new Field(f.x, f.y, b.get_x_offset(), b.get_y_offset(), u.get_fSize()));
+					vec->push_back(new Field(f.x, f.y, player_board.get_x_offset(), player_board.get_y_offset(), u.get_fSize()));
 					added = true;
 					break;
 				}
@@ -232,65 +235,65 @@ vector<Field*> ShipSettingState::create_array(int middle_point_x, int middle_poi
 	return *vec;
 }
 
-void ShipSettingState::place_ships_randomly() {
-	int x_val_to_sub = 0, y_val_to_sub = 0;							//losowe wartosci, ktore beda odejmowane od x,y pol staku aby statek znalazl sie na planszy
+void ShipSettingState::place_ships_randomly(vector<Ship>& ships, Board& board) {
+	int x_val_to_sub = 0, y_val_to_sub = 0;
 	for (Ship& s : ships)
-		if (!s.is_placed()) {
-			s.set_placed(true);
-			ship_selected = &s;															//zaznacz statek
-			Field* f = &s.getFieldsVector().at(rand() % s.getFieldsVector().size());	//wez losowe pole statku
-			vector<Field*> vec = create_array(f->x, f->y);								//zrob tablice 9x9 wokol tego pola
+		s.set_board_fields(board.get_fields());
+	for (Ship& s : ships) {
+		if (s.is_placed())
+			continue;
+		for (int i = 0; i < rand() % 4; i++)
+			s.rotate_binary_representation();
+		s.create_ship_fields_depending_on_binary_representation();
+		s.set_color(128, 255, 128);
 
-			for (int i = 0; i < rand() % 4; ++i) {										//obroc statek kilka razy losowo
-				rotateArray(vec);
-				fitNewCoords(f->x, f->y, vec);
+		while (true) {
+			cout << 1;
+			x_val_to_sub = rand() % ((min_x(s)) - (max_x(s) - u.get_bSize() + 1)) + (max_x(s) - u.get_bSize() + 1);
+			y_val_to_sub = rand() % ((min_y(s)) - (max_y(s) - u.get_bSize() + 1)) + (max_y(s) - u.get_bSize() + 1);
+			for (Field& f : s.getFieldsVector()) {
+				f.x -= x_val_to_sub;
+				f.y -= y_val_to_sub;
+				f.fit_render_coords(board.get_x_offset(), board.get_y_offset());
 			}
-			replace_ships_vectors(ship_selected, vec);									//podmien wektory
-			while (true) {																//przemiesc statek o losowa wartosc tak aby byl na planszy
-				x_val_to_sub = rand() % ((min_x(ship_selected)) - (max_x(ship_selected) - u.get_bSize() + 1)) + (max_x(ship_selected) - u.get_bSize() + 1);
-				y_val_to_sub = rand() % ((min_y(ship_selected)) - (max_y(ship_selected) - u.get_bSize() + 1)) + (max_y(ship_selected) - u.get_bSize() + 1);
-				for (Field& f : ship_selected->getFieldsVector()) {
-					f.x -= x_val_to_sub;
-					f.y -= y_val_to_sub;
-					f.fit_render_coords();
+			if (is_adjacent(&s, ships)) {											
+				for (Field& f : s.getFieldsVector()) {
+					f.x += x_val_to_sub;
+					f.y += y_val_to_sub;
 				}
-				if (is_adjacent()) {													//jesli statek jest na niedozwolonym polu to cofnij go z powrotem za plansze
-					for (Field& f : ship_selected->getFieldsVector()) {
-						f.x += x_val_to_sub;
-						f.y += y_val_to_sub;
-					}
-				}
-				else {
-					s.set_adjacent_fields();
-					s.set_placed(true);
-					break;
-				}
-
+			}
+			else {
+				
+				s.set_adjacent_fields();
+				s.set_placed(true);
+				break;
 			}
 		}
+	}
+
 }
 
-int ShipSettingState::max_x(Ship* s) {
-	int max_x = s->getFieldsVector().at(0).x;
-	for (Field f : s->getFieldsVector())
+int ShipSettingState::max_x(Ship s) {
+	int max_x = s.getFieldsVector().at(0).x;
+	for (Field f : s.getFieldsVector())
 		if (f.x > max_x) max_x = f.x;
 	return max_x;
 }
-int ShipSettingState::max_y(Ship* s) {
-	int max_y = s->getFieldsVector().at(0).y;
-	for (Field f : s->getFieldsVector())
+int ShipSettingState::max_y(Ship s) {
+	int max_y = s.getFieldsVector().at(0).y;
+	for (Field f : s.getFieldsVector())
 		if (f.y > max_y) max_y = f.y;
 	return max_y;
 }
-int ShipSettingState::min_x(Ship* s) {
-	int min_x = s->getFieldsVector().at(0).x;
-	for (Field f : s->getFieldsVector())
+int ShipSettingState::min_x(Ship s) {
+	int min_x = s.getFieldsVector().at(0).x;
+	for (Field f : s.getFieldsVector())
 		if (f.x < min_x) min_x = f.x;
 	return min_x;
 }
-int ShipSettingState::min_y(Ship* s) {
-	int min_y = s->getFieldsVector().at(0).y;
-	for (Field f : s->getFieldsVector())
+int ShipSettingState::min_y(Ship s) {
+	int min_y = s.getFieldsVector().at(0).y;
+	for (Field f : s.getFieldsVector())
 		if (f.y < min_y) min_y = f.y;
 	return min_y;
 }
@@ -303,7 +306,7 @@ void ShipSettingState::assignStates(State** s, GameState* g, MenuState* m) {
 
 void ShipSettingState::handle_ship_setting() {
 	if (u.get_space_pressed())
-		place_ships_randomly();
+		place_ships_randomly(player_ships, player_board);
 
 	// obracanie statku
 	if (u.get_mouse_clicked2() && guard2) {
@@ -334,7 +337,7 @@ void ShipSettingState::handle_ship_setting() {
 	}
 	//wywolywane raz gdy myszka zostanie puszczona
 	else if (ship_selected != NULL && !guard1) {
-		if (can_place_ship() && !is_adjacent()) { // jesli statek mozna umiescic
+		if (can_place_ship() && !is_adjacent(ship_selected, player_ships)) { // jesli statek mozna umiescic
 			match_ship_screen_position();
 			ship_selected->set_adjacent_fields();
 			ship_selected->set_color(128, 255, 128);
@@ -352,20 +355,31 @@ void ShipSettingState::handle_ship_setting() {
 }
 
 void ShipSettingState::init_customizing_fields_vector() {
-	customBoard.init_vec();
+	customizingBoard.init_vec();
 }
 
 void ShipSettingState::prepare_ships_for_setting() {
-	ships.clear();
+	player_ships.clear();
 
 	for (char pattern : u.get_ship_pattern()) {
-		ships.push_back(Ship(u, vector<Field>{}, pattern, 0, 0));
-		
+		Ship* s = new Ship(u, player_board.get_fields(), pattern, 0, 0);
+		player_ships.push_back(*s);
+		cpu_ships.push_back(*s);
+		icons.push_back(Icon(s));
 	}
 }
 
 /*****************************BUTTONS FUNCTIONS**************************************/
 void ShipSettingState::startGameButtonOnClick() {
+	
+	place_ships_randomly(cpu_ships, computer_board);
+	player_board.setShips(player_ships);
+	computer_board.setShips(cpu_ships);
+	for (Ship& s : cpu_ships) {
+		for (Field& f : s.getFieldsVector())
+			cout << f.x << " " << f.y << " " << f.x_screen << " " << f.y_screen << endl;
+		cout << endl << endl;
+	}
 	*state = gameState;
 }
 
@@ -381,9 +395,10 @@ void ShipSettingState::confirmButtonOnClick() {
 void ShipSettingState::createShipButtonOnClick() {
 	if (ship_selected->getFieldsVector().size() != 0) {
 		substract_ship_quantity();
-		ship_selected->set_board_fields(b.get_fields());
+		ship_selected->set_board_fields(player_board.get_fields());
 		icons.push_back(Icon(ship_selected));
-		ships.push_back(*ship_selected);
+		player_ships.push_back(*ship_selected);
+		cpu_ships.push_back(*ship_selected);
 		ship_selected = new Ship(u, vector<Field>{}, 'i', 0, 0);
 	}
 }
@@ -452,15 +467,19 @@ void ShipSettingState::handle_buttons_events() {
 		if (!u.get_mouse_clicked1())
 			guard3 = true;
 	}
+	if (quantity1 == 0 and quantity2 == 0 and quantity3 == 0 and quantity4 == 0 and quantity5 == 0)
+		confirmButton.canBeClicked = true;
+	else
+		confirmButton.canBeClicked = false;
 }
 
 void ShipSettingState::handle_ship_creation() {
-	field_selected = customBoard.getFieldSelectedByMouse();
+	field_selected = customizingBoard.getFieldSelectedByMouse();
 	manage_creation_buttons();
 	if (field_selected != NULL && u.get_mouse_clicked1() && can_append_field_to_ship(field_selected, ship_selected)) {
 		if (!ship_selected->field_in_vec(*field_selected, ship_selected->getFieldsVector())) {
-			Field* newField = new Field(field_selected->x, field_selected->y, customBoard.get_x_offset(), customBoard.get_y_offset(), u.get_fSize());
-			ship_selected->get_binary_representation().at(field_selected->y * customBoard.get_width() + field_selected->x) = 1;
+			Field* newField = new Field(field_selected->x, field_selected->y, customizingBoard.get_x_offset(), customizingBoard.get_y_offset(), u.get_fSize());
+			ship_selected->get_binary_representation().at(field_selected->y * customizingBoard.get_width() + field_selected->x) = 1;
 			newField->set_color(255, 128, 0);
 			ship_selected->getFieldsVector().push_back(*newField);
 		}
@@ -494,22 +513,22 @@ bool ShipSettingState::can_append_field_to_ship(Field* f, Ship* s) {
 	if (s->field_in_vec(*f, s->getFieldsVector()))
 		return false;
 
-	int x = f->x, y = f->y, w = customBoard.get_width();
+	int x = f->x, y = f->y, w = customizingBoard.get_width();
 
-	if (y + 1 < customBoard.get_height())
-		if (s->field_in_vec(customBoard.get_fields().at((y + 1) * w + x), s->getFieldsVector()))
+	if (y + 1 < customizingBoard.get_height())
+		if (s->field_in_vec(customizingBoard.get_fields().at((y + 1) * w + x), s->getFieldsVector()))
 			return true;
 
-	if (x + 1 < customBoard.get_width())
-		if (s->field_in_vec(customBoard.get_fields().at(y * w + x + 1), s->getFieldsVector()))
+	if (x + 1 < customizingBoard.get_width())
+		if (s->field_in_vec(customizingBoard.get_fields().at(y * w + x + 1), s->getFieldsVector()))
 			return true;
 
 	if (y - 1 >= 0)
-		if (s->field_in_vec(customBoard.get_fields().at((y - 1) * w + x), s->getFieldsVector()))
+		if (s->field_in_vec(customizingBoard.get_fields().at((y - 1) * w + x), s->getFieldsVector()))
 			return true;
 
 	if (x - 1 >= 0)
-		if (s->field_in_vec(customBoard.get_fields().at(y * w + x - 1), s->getFieldsVector()))
+		if (s->field_in_vec(customizingBoard.get_fields().at(y * w + x - 1), s->getFieldsVector()))
 			return true;
 
 	return false;

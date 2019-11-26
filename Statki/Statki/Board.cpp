@@ -19,6 +19,11 @@ void Board::render() {
 		f.render();
 }
 
+void Board::render_ships() {
+	for (Ship s : ships)
+		s.render();
+}
+
 Field* Board::getFieldSelectedByMouse() {
 	int board_coord_x = (u.get_mouseX() - x_offset) / u.get_fSize();
 	int board_coord_y = (u.get_mouseY() - y_offset) / u.get_fSize();

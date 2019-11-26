@@ -19,7 +19,7 @@ class MenuState : public State
 {
 private:
 
-	bool guard, optionState, shipsQuantityChanged, runForTheFirstTime;
+	bool guard, optionState, changedSettings, runForTheFirstTime;
 	Utils& u;
 	ALLEGRO_FONT* font30, * font20;
 	vector<Button*> mainMenuButtons;
@@ -28,6 +28,8 @@ private:
 	State** state;
 	GameState* gameState;
 	ShipSettingState* shipSettingState;
+
+	bool rCustomShip;
 	unsigned rQuantity1, rQuantity2, rQuantity3, rQuantity4, rQuantity5;
 
 	/***********BUTTONS**********/
@@ -84,7 +86,7 @@ public:
 
 	void assingFunctions();
 	void assignStates(State**, GameState*, ShipSettingState*);
-	bool changedShipsQuantity() { return shipsQuantityChanged; }
+	bool getChangedShips() { return changedSettings; }
 
 
 };

@@ -38,10 +38,14 @@ private:
 	int mouse_board_pos_x, mouse_board_pos_y;
 	unsigned quantity1, quantity2, quantity3, quantity4, quantity5;
 	Utils& u;
-	Board& b;
-	vector<Ship> ships;
+
+	Board& player_board;
+	Board& computer_board;
+	vector<Ship> player_ships;
+	vector<Ship> cpu_ships;
+
 	Ship* ship_selected;
-	Board customBoard;
+	Board customizingBoard;
 	vector<Field> last_ship_position;
 	vector<Field> last_ship_adjacent_fields;
 	State** state;
@@ -65,32 +69,32 @@ private:
 	void drag();
 	void set_ships_coords();
 	void match_ship_screen_position();
-	bool is_adjacent() const;
+	bool is_adjacent(Ship* ship, vector<Ship> ships) const;
 	bool is_placing_done() const;
 	void calculate_mouse_board_pos();
 	void rotate_ship();
 	vector<Field*> create_array(int, int);
 	void rotateArray(vector<Field*>&);
-	void fitNewCoords(int, int, vector<Field*>);
+	void fitNewCoords(Board, int, int, vector<Field*>);
 	void replace_ships_vectors(Ship*, vector<Field*>);
 	bool can_rotate_ship(vector<Field*>);
-	void place_ships_randomly();
-	int max_x(Ship*);
-	int max_y(Ship*);
-	int min_x(Ship*);
-	int min_y(Ship*);
+	void place_ships_randomly(vector<Ship>& ships, Board& board);
+	int max_x(Ship);
+	int max_y(Ship);
+	int min_x(Ship);
+	int min_y(Ship);
 	bool can_append_field_to_ship(Field* f, Ship* s);
 	unsigned max_ship_size_to_create();
 	unsigned min_ship_size_to_create();
 	void substract_ship_quantity();
 	void manage_creation_buttons();
 public:
-	ShipSettingState(Utils& u, Board& b);
+	ShipSettingState(Utils& u, Board& b1, Board& b2);
 	~ShipSettingState();
 	virtual void render();
 	virtual void tick();
 	void prepare_ships_for_setting();
-	vector<Ship>& get_ships() { return ships; }
+	vector<Ship>& get_ships() { return player_ships; }
 	Ship* get_ship_selected() { return ship_selected; }
 	void delete_icons() { icons.clear(); Icon::set_y_position(40); }
 	void set_ship_selected(Ship* val) { ship_selected = val; }

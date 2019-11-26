@@ -6,6 +6,10 @@ Icon::Icon(Ship* ship_pointer)
 	y_position += 40;
 }
 
+void Icon::tick() {
+
+}
+
 void Icon::render() {
 	al_draw_rectangle(x, y, x + 40, y + 40, al_map_rgb(255, 0, 0), 2);
 	if (ship_pointer != NULL) {

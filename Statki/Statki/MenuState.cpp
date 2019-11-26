@@ -6,7 +6,8 @@ using namespace std;
 
 MenuState::MenuState(Utils& u)
 	:u(u), guard(true), optionState(false), rQuantity1(u.get_quantity1()), rQuantity2(u.get_quantity2()),
-	rQuantity3(u.get_quantity3()), rQuantity4(u.get_quantity4()), rQuantity5(u.get_quantity5()), shipsQuantityChanged(false), runForTheFirstTime(true)
+	rQuantity3(u.get_quantity3()), rQuantity4(u.get_quantity4()), rQuantity5(u.get_quantity5()), changedSettings(false), runForTheFirstTime(true),
+	rCustomShip(true)
 {
 	al_init_font_addon();
 	al_init_ttf_addon();
@@ -87,19 +88,16 @@ void MenuState::resumeButtonOnClick() {
 		if (shipSettingState->get_ship_selected() == NULL)
 			shipSettingState->set_ship_selected(new Ship(u, vector<Field>{}, 'i', 0, 0));
 
-		if (u.get_custom_ship_mode()) {
-			if (shipsQuantityChanged || runForTheFirstTime) {
-				shipSettingState->init_customizing_fields_vector();
-				shipSettingState->set_ships_quantity();
-				shipSettingState->delete_icons();
-			}
+		if (u.get_custom_ship_mode() and (changedSettings or runForTheFirstTime)) {
+			shipSettingState->init_customizing_fields_vector();
+			shipSettingState->set_ships_quantity();
+			shipSettingState->delete_icons();
 		}
-		else {
-			//shipSettingState->prepare_ships_for_setting(); // default
-		}
-
-		shipsQuantityChanged = false;
-
+		else if (changedSettings) {
+			shipSettingState->delete_icons();
+			shipSettingState->prepare_ships_for_setting();
+		}	
+		changedSettings = false;
 	}
 	runForTheFirstTime = false;
 }
@@ -108,7 +106,7 @@ void MenuState::applyButtonOnClick() {
 }
 
 void MenuState::customCheckBoxOnClick() {
-	u.set_custom_ship_mode(!u.get_custom_ship_mode());
+	rCustomShip = !rCustomShip;
 }
 
 void MenuState::soundCheckBoxOnClick() {
@@ -258,7 +256,7 @@ void MenuState::drawOtherMenuStuffs() {
 	al_draw_textf(font30, al_map_rgb(255, 255, 255), 270, 380, 0, "%d", rQuantity5);
 
 	al_draw_textf(font20, al_map_rgb(255, 255, 255), 550, 25, 0, "Available fields: %d", u.numberOfAvailableFields);
-	al_draw_textf(font30, al_map_rgb(255, 255, 255), 675, 75, 0, "%s", u.get_custom_ship_mode() ? "ON" : "OFF");
+	al_draw_textf(font30, al_map_rgb(255, 255, 255), 675, 75, 0, "%s", rCustomShip ? "ON" : "OFF");
 	al_draw_textf(font30, al_map_rgb(255, 255, 255), 675, 150, 0, "%s", u.get_sounds_on() ? "ON" : "OFF");
 
 	al_draw_text(font30, al_map_rgb(255, 255, 255), 40, 60, 0, "One-masted ship: "); // 1
@@ -273,11 +271,11 @@ void MenuState::drawOtherMenuStuffs() {
 }
 
 void MenuState::handleIncDecButtons() {
-	dec1Button.canBeClicked = (u.get_quantity1() == 0) ? false : true;
-	dec2Button.canBeClicked = (u.get_quantity2() == 0) ? false : true;
-	dec3Button.canBeClicked = (u.get_quantity3() == 0) ? false : true;
-	dec4Button.canBeClicked = (u.get_quantity4() == 0) ? false : true;
-	dec5Button.canBeClicked = (u.get_quantity5() == 0) ? false : true;
+	dec1Button.canBeClicked = (rQuantity1 == 0) ? false : true;
+	dec2Button.canBeClicked = (rQuantity2 == 0) ? false : true;
+	dec3Button.canBeClicked = (rQuantity3 == 0) ? false : true;
+	dec4Button.canBeClicked = (rQuantity4 == 0) ? false : true;
+	dec5Button.canBeClicked = (rQuantity5 == 0) ? false : true;
 
 	inc1Button.canBeClicked = (u.numberOfAvailableFields < 9) ? false : true;
 	inc2Button.canBeClicked = (u.numberOfAvailableFields < 12) ? false : true;
@@ -298,6 +296,7 @@ void MenuState::rememberSettings() {
 	rQuantity3 = u.get_quantity3();
 	rQuantity4 = u.get_quantity4();
 	rQuantity5 = u.get_quantity5();
+	rCustomShip = u.get_custom_ship_mode();
 }
 
 void MenuState::applySettings() {
@@ -305,13 +304,15 @@ void MenuState::applySettings() {
 		rQuantity2 != u.get_quantity2() ||
 		rQuantity3 != u.get_quantity3() ||
 		rQuantity4 != u.get_quantity4() ||
-		rQuantity5 != u.get_quantity5()) {
+		rQuantity5 != u.get_quantity5() ||
+		rCustomShip != u.get_custom_ship_mode()) {
 		u.set_quantity1(rQuantity1);
 		u.set_quantity2(rQuantity2);
 		u.set_quantity3(rQuantity3);
 		u.set_quantity4(rQuantity4);
 		u.set_quantity5(rQuantity5);
-		shipsQuantityChanged = true;
+		u.set_custom_ship_mode(rCustomShip);
+		changedSettings = true;
 		shipSettingState->get_ships().clear();
 		if (shipSettingState->get_ship_selected() != NULL)
 			shipSettingState->get_ship_selected()->getFieldsVector().clear();

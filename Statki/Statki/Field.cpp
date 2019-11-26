@@ -27,7 +27,7 @@ void Field::set_color(int r, int g, int b) {
 	this->g = g;
 	this->b = b;
 }
-void Field::fit_render_coords() {
+void Field::fit_render_coords(int x_offset, int y_offset) {
 	this->x_screen = x * fSize + x_offset;
 	this->y_screen = y * fSize + y_offset;
 }

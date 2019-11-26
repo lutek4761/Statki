@@ -1,19 +1,21 @@
 #include "Utils.h"
 
 Utils::Utils()
-	:quantity1(3), quantity2(2), quantity3(2), quantity4(1), quantity5(0), ship_setting_done(false), mouse_clicked1(false),
+	:quantity1(1), quantity2(1), quantity3(0), quantity4(0), quantity5(0), ship_setting_done(false), mouse_clicked1(false),
 	mouse_clicked2(false), space_pressed(false), custom_ships_mode(true), sounds_on(true)
 {
 	//centralizacja myszki
 	numberOfAvailableFields = bSize * bSize - quantity1 * 9 - quantity2 * 12 - quantity3 * 15 - quantity4 * 18 - quantity5 * 21;
 	mouseX = (bSize + 1) * fSize / 2;
 	mouseY = (bSize + 1) * fSize / 2;
-	ship_pattern = vector<char>{ '1','1','1','2','2','3','3','4' };
+	ship_pattern = vector<char>{ '1','2' };
 	al_install_audio();
 	al_init_acodec_addon();
-	al_reserve_samples(2);
+	al_reserve_samples(4);
 	clicked = al_load_sample("clicked.wav");
 	selected = al_load_sample("selected.wav");
+	hit = al_load_sample("Explosion1.wav");
+	splash = al_load_sample("Splash.wav");
 
 }
 

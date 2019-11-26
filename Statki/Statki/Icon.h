@@ -13,6 +13,7 @@ private:
 public:
 	Icon(Ship* ship_pointer);
 	void render();
+	void tick();
 	static int& get_y_position() { return y_position; }
 	static void set_y_position(int val) { y_position = val; }
 };
