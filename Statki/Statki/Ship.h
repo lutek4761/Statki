@@ -34,6 +34,7 @@ public:
 	bool field_in_vec(Field f, vector<Field> fields) const;
 	void set_placed(bool val) { placed = val; }
 	bool is_placed() { return placed; }
+	bool is_destroyed() const;
 	vector<Field>& get_adjacent_fields() { return adjacent_fields; }
 	void set_color(int r, int g, int b);
 	vector<int>& get_binary_representation() { return binary_representation; }

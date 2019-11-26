@@ -84,6 +84,13 @@ bool Ship::field_in_vec(Field f, std::vector<Field> vec) const {
 	return false;
 }
 
+bool Ship::is_destroyed() const {
+	for (Field f : fields)
+		if (!f.checked)
+			return false;
+	return true;
+}
+
 int Ship::coord(int x, int y) {
 	return y * u.get_bSize() + x;
 }

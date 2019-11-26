@@ -35,6 +35,7 @@ private:
 	/***********BUTTONS**********/
 	Button customCheckBox;
 	Button soundCheckBox;
+	Button showAdjacentFieldsCheckBox;
 	Button resumeButton;
 	Button applyButton;
 	Button optionsButton;
@@ -63,6 +64,7 @@ private:
 	/*****ON CLICK FUNCTIONS******/
 	void customCheckBoxOnClick();
 	void soundCheckBoxOnClick();
+	void showAdjacentFieldsCheckBoxOnClick();
 	void resumeButtonOnClick();
 	void optionsButtonOnClick();
 	void applyButtonOnClick();

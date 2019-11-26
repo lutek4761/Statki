@@ -18,7 +18,7 @@ public:
 	void init_vec();
 	void render();
 	void render_ships();
-	vector<Field> get_fields() { return fields; }
+	vector<Field>& get_fields() { return fields; }
 	int get_x_offset() { return x_offset; }
 	int get_y_offset() { return y_offset; }
 	int get_width() { return width; }

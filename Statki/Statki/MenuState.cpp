@@ -19,6 +19,7 @@ MenuState::MenuState(Utils& u)
 	/****************************************BUTTONS****************************************/
 	customCheckBox = Button(500, 75, 150, 50, "Custom Ships", ID::CUSTOMCHECKBOX);
 	soundCheckBox = Button(500, 150, 150, 50, "Sound", ID::SOUNDCHECKBOX);
+	showAdjacentFieldsCheckBox = Button(500, 225, 150, 50, "Show Adjacent", ID::ADJACENTCHECKBOX);
 	resumeButton = Button(375, 100, 150, 50, "Play", ID::PLAY);
 	optionsButton = Button(375, 200, 150, 50, "Options", ID::OPTIONS);
 	exitButton = Button(375, 300, 150, 50, "Exit", ID::EXIT);
@@ -37,7 +38,7 @@ MenuState::MenuState(Utils& u)
 
 	mainMenuButtons = vector<Button*>{ &resumeButton , &optionsButton, &exitButton };
 	optionsMenuButtons = vector<Button*>{ &inc1Button, &dec1Button, &inc2Button, &dec2Button, &inc3Button, &dec3Button, &inc4Button, &dec4Button,
-	&inc5Button,&dec5Button,&backButton,&customCheckBox,&soundCheckBox,&applyButton };
+	&inc5Button,&dec5Button,&backButton,&customCheckBox,&soundCheckBox,&applyButton, &showAdjacentFieldsCheckBox };
 
 	buttonsToDisplay = &mainMenuButtons;
 	assingFunctions();
@@ -93,13 +94,16 @@ void MenuState::resumeButtonOnClick() {
 			shipSettingState->set_ships_quantity();
 			shipSettingState->delete_icons();
 		}
-		else if (changedSettings) {
+		else if (changedSettings or runForTheFirstTime) {
 			shipSettingState->delete_icons();
 			shipSettingState->prepare_ships_for_setting();
 		}	
 		changedSettings = false;
 	}
 	runForTheFirstTime = false;
+}
+void MenuState::showAdjacentFieldsCheckBoxOnClick() {
+	u.set_show_adjacent_mode(!u.get_show_adjacent_mode());
 }
 void MenuState::applyButtonOnClick() {
 	applySettings();
@@ -200,6 +204,9 @@ void MenuState::assingFunctions() {
 	for (Button* button : optionsMenuButtons) {
 		button->onClickListener = [this](Button* btn) {
 			switch (btn->getId()) {
+			case ID::ADJACENTCHECKBOX:
+				showAdjacentFieldsCheckBoxOnClick();
+				break;
 			case ID::APPLY:
 				applyButtonOnClick();
 				break;
@@ -258,6 +265,7 @@ void MenuState::drawOtherMenuStuffs() {
 	al_draw_textf(font20, al_map_rgb(255, 255, 255), 550, 25, 0, "Available fields: %d", u.numberOfAvailableFields);
 	al_draw_textf(font30, al_map_rgb(255, 255, 255), 675, 75, 0, "%s", rCustomShip ? "ON" : "OFF");
 	al_draw_textf(font30, al_map_rgb(255, 255, 255), 675, 150, 0, "%s", u.get_sounds_on() ? "ON" : "OFF");
+	al_draw_textf(font30, al_map_rgb(255, 255, 255), 675, 225, 0, "%s", u.get_show_adjacent_mode() ? "ON" : "OFF");
 
 	al_draw_text(font30, al_map_rgb(255, 255, 255), 40, 60, 0, "One-masted ship: "); // 1
 	al_draw_text(font30, al_map_rgb(255, 255, 255), 40, 140, 0, "Two-masted ship: "); // 2

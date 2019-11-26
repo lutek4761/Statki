@@ -1,5 +1,4 @@
 #pragma once
-#include "Square.h"
 #include <vector>
 #include "Field.h"
 #include "Ship.h"

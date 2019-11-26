@@ -1,14 +1,14 @@
 #include "Utils.h"
 
 Utils::Utils()
-	:quantity1(1), quantity2(1), quantity3(0), quantity4(0), quantity5(0), ship_setting_done(false), mouse_clicked1(false),
-	mouse_clicked2(false), space_pressed(false), custom_ships_mode(true), sounds_on(true)
+	:quantity1(1), quantity2(1), quantity3(3), quantity4(0), quantity5(0), ship_setting_done(false), mouse_clicked1(false),
+	mouse_clicked2(false), space_pressed(false), custom_ships_mode(false), sounds_on(true), show_adjacent_mode(true)
 {
 	//centralizacja myszki
 	numberOfAvailableFields = bSize * bSize - quantity1 * 9 - quantity2 * 12 - quantity3 * 15 - quantity4 * 18 - quantity5 * 21;
 	mouseX = (bSize + 1) * fSize / 2;
 	mouseY = (bSize + 1) * fSize / 2;
-	ship_pattern = vector<char>{ '1','2' };
+	ship_pattern = vector<char>{ '1','2','3' ,'3' ,'3' ,'3' };
 	al_install_audio();
 	al_init_acodec_addon();
 	al_reserve_samples(4);
@@ -22,7 +22,7 @@ Utils::Utils()
 Utils::~Utils() {}
 
 bool Utils::isMouseInRectangle(unsigned x, unsigned y, unsigned w, unsigned h) {
-	if ((mouseX > x) && (mouseY > y) && (mouseX < x + w) && (mouseY < y + h)) return true;
+	if ((mouseX > (int)x) && (mouseY > (int)y) && (mouseX < (int)x + w) && (mouseY < (int)y + h)) return true;
 	else return false;
 }
 

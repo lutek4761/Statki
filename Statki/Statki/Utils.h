@@ -16,7 +16,7 @@ private:
 	unsigned const dispHeight = 2 * fSize + bSize * fSize;
 	unsigned const fps = 60;
 	int mouseX, mouseY;
-	bool mouse_clicked1, mouse_clicked2, space_pressed, ship_setting_done, custom_ships_mode, sounds_on;
+	bool mouse_clicked1, mouse_clicked2, space_pressed, ship_setting_done, custom_ships_mode, sounds_on, show_adjacent_mode;
 	vector<char> ship_pattern;
 	ALLEGRO_SAMPLE* clicked, * selected, * hit, * splash;
 	unsigned quantity1, quantity2, quantity3, quantity4, quantity5;
@@ -47,6 +47,8 @@ public:
 	int get_mouseX() { return mouseX; }
 	int get_mouseY() { return mouseY; }
 	bool get_sounds_on() { return sounds_on; }
+	bool get_show_adjacent_mode() { return show_adjacent_mode; }
+	void set_show_adjacent_mode(bool val) { show_adjacent_mode = val; }
 	bool get_custom_ship_mode() { return custom_ships_mode; }
 	bool get_mouse_clicked1() { return mouse_clicked1; }
 	bool get_mouse_clicked2() { return mouse_clicked2; }

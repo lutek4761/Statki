@@ -15,7 +15,6 @@ private:
 	HumanPlayer* human_player;
 	Player* player_to_move;
 	Field* field_selected;
-	bool check_for_hit(Field* f, Board b) const;
 public:
 	GameState(Utils& u, Board& b1, Board& b2);
 	~GameState();
