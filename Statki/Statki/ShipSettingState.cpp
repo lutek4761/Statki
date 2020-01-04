@@ -3,15 +3,15 @@
 #include "GameState.h"
 using namespace std;
 
-ShipSettingState::ShipSettingState(Utils& u, Board& b1, Board& b2)
-	:u(u), player_board(b1), computer_board(b2), last_mouse_pos_x(u.get_mouseX()), last_mouse_pos_y(u.get_mouseY()),
-	ship_selected(NULL), guard1(true), guard2(true), guard3(true), customizingBoard(Board(u, 5, 5, 500, 75)),
+ShipSettingState::ShipSettingState(Board& b1, Board& b2)
+	:player_board(b1), computer_board(b2), last_mouse_pos_x(Utils::get_mouseX()), last_mouse_pos_y(Utils::get_mouseY()),
+	ship_selected(NULL), guard1(true), guard2(true), guard3(true), customizingBoard(Board(5, 5, 500, 75)),
 	quantity1(0), quantity2(0), quantity3(0), quantity4(0), quantity5(0), field_selected(NULL)
 {
 	font30 = al_load_font("Arial.ttf", 30, 0);
 	font20 = al_load_font("Arial.ttf", 20, 0);
-	clicked = u.get_clicked_sound();
-	selected = u.get_selected_sound();
+	clicked = Utils::get_clicked_sound();
+	selected = Utils::get_selected_sound();
 	srand(time(NULL));
 	
 	/****************************************BUTTONS****************************************/
@@ -35,7 +35,7 @@ ShipSettingState::~ShipSettingState() {}
 
 void ShipSettingState::render() {
 	player_board.render();
-	if (u.get_custom_ship_mode()) {
+	if (Utils::get_custom_ship_mode()) {
 		customizingBoard.render();
 		al_draw_textf(font30, al_map_rgb(255, 255, 255), 500, 25, 0, "%s", "CUSTOMIZING BOARD");
 		al_draw_textf(font30, al_map_rgb(255, 255, 255), 750, 25, 0, "%s", "QUANTITY");
@@ -57,15 +57,15 @@ void ShipSettingState::render() {
 	for (Button* button : *buttonsToDisplay)
 		button->render();
 	if (field_selected != NULL)
-		al_draw_rectangle(field_selected->x_screen, field_selected->y_screen, field_selected->x_screen + u.get_fSize(),
-			field_selected->y_screen + u.get_fSize(), al_map_rgb(255, 0, 0), 2);
+		al_draw_rectangle(field_selected->x_screen, field_selected->y_screen, field_selected->x_screen + Utils::get_fSize(),
+			field_selected->y_screen + Utils::get_fSize(), al_map_rgb(255, 0, 0), 2);
 	for (Icon& icon : icons)
 		icon.render();
 }
 
 void ShipSettingState::tick() {
 	handle_buttons_events();
-	if (u.get_custom_ship_mode()) {
+	if (Utils::get_custom_ship_mode()) {
 		handle_ship_creation();
 	}
 	else {
@@ -76,14 +76,14 @@ void ShipSettingState::tick() {
 	else 
 		startGameButton.canBeClicked = false;
 	
-	last_mouse_pos_x = u.get_mouseX();
-	last_mouse_pos_y = u.get_mouseY();
+	last_mouse_pos_x = Utils::get_mouseX();
+	last_mouse_pos_y = Utils::get_mouseY();
 }
 
 Ship* ShipSettingState::select_ship() {
 	for (Ship& s : player_ships) {
 		for (Field& f : s.getFieldsVector()) {
-			if (u.isMouseInRectangle(f.x_screen, f.y_screen, u.get_fSize(), u.get_fSize()))
+			if (Utils::isMouseInRectangle(f.x_screen, f.y_screen, Utils::get_fSize(), Utils::get_fSize()))
 				return &s;
 		}
 	}
@@ -93,9 +93,9 @@ Ship* ShipSettingState::select_ship() {
 bool ShipSettingState::can_place_ship() const {
 	//czy wszystkie pola statku sa na planszy
 	for (Field& f : ship_selected->getFieldsVector()) {
-		if (f.x_screen < player_board.get_x_offset() - (int)u.get_fSize() / 2 || f.y_screen < player_board.get_y_offset() - (int)u.get_fSize() / 2
-			|| f.x_screen > player_board.get_x_offset() + (u.get_bSize() - 1) * (int)u.get_fSize() + (int)u.get_fSize() / 2
-			|| f.y_screen > player_board.get_y_offset() + (u.get_bSize() - 1) * (int)u.get_fSize() + (int)u.get_fSize() / 2)
+		if (f.x_screen < player_board.get_x_offset() - (int)Utils::get_fSize() / 2 || f.y_screen < player_board.get_y_offset() - (int)Utils::get_fSize() / 2
+			|| f.x_screen > player_board.get_x_offset() + (Utils::get_bSize() - 1) * (int)Utils::get_fSize() + (int)Utils::get_fSize() / 2
+			|| f.y_screen > player_board.get_y_offset() + (Utils::get_bSize() - 1) * (int)Utils::get_fSize() + (int)Utils::get_fSize() / 2)
 			return false;
 	}
 	return true;
@@ -103,22 +103,22 @@ bool ShipSettingState::can_place_ship() const {
 
 void ShipSettingState::drag() {
 	for (Field& f : ship_selected->getFieldsVector()) {
-		f.x_screen -= last_mouse_pos_x - u.get_mouseX();
-		f.y_screen -= last_mouse_pos_y - u.get_mouseY();
+		f.x_screen -= last_mouse_pos_x - Utils::get_mouseX();
+		f.y_screen -= last_mouse_pos_y - Utils::get_mouseY();
 	}
 }
 
 void ShipSettingState::set_ships_coords() {
 	for (Field& f : ship_selected->getFieldsVector()) {
-		f.x = ((int)f.x_screen - (int)player_board.get_x_offset() + (int)u.get_fSize() / 2) / (int)u.get_fSize();
-		f.y = ((int)f.y_screen - (int)player_board.get_y_offset() + (int)u.get_fSize() / 2) / (int)u.get_fSize();
+		f.x = ((int)f.x_screen - (int)player_board.get_x_offset() + (int)Utils::get_fSize() / 2) / (int)Utils::get_fSize();
+		f.y = ((int)f.y_screen - (int)player_board.get_y_offset() + (int)Utils::get_fSize() / 2) / (int)Utils::get_fSize();
 	}
 }
 
 void ShipSettingState::match_ship_screen_position() {
 	for (Field& f : ship_selected->getFieldsVector()) {
-		f.x_screen = player_board.get_x_offset() + f.x * u.get_fSize();
-		f.y_screen = player_board.get_y_offset() + f.y * u.get_fSize();
+		f.x_screen = player_board.get_x_offset() + f.x * Utils::get_fSize();
+		f.y_screen = player_board.get_y_offset() + f.y * Utils::get_fSize();
 	}
 }
 
@@ -141,8 +141,8 @@ bool ShipSettingState::is_placing_done() const {
 }
 
 void ShipSettingState::calculate_mouse_board_pos() {
-	mouse_board_pos_x = (u.get_mouseX() - player_board.get_x_offset()) / u.get_fSize();
-	mouse_board_pos_y = (u.get_mouseY() - player_board.get_y_offset()) / u.get_fSize();
+	mouse_board_pos_x = (Utils::get_mouseX() - player_board.get_x_offset()) / Utils::get_fSize();
+	mouse_board_pos_y = (Utils::get_mouseY() - player_board.get_y_offset()) / Utils::get_fSize();
 }
 
 void ShipSettingState::rotate_ship() {
@@ -150,6 +150,7 @@ void ShipSettingState::rotate_ship() {
 	calculate_mouse_board_pos();
 	ship_selected = select_ship();
 	if (ship_selected != NULL) {
+		
 		vec = create_array(mouse_board_pos_x, mouse_board_pos_y); // funkcja tworzy wektor wskaznikow NULL/Field* 9x9 z kliknietym punktem w srodku
 
 		for (int i = 0; i < 3; i++) {
@@ -167,9 +168,13 @@ void ShipSettingState::rotate_ship() {
 }
 
 bool ShipSettingState::can_rotate_ship(vector<Field*> vec) {
+	if (ship_selected == NULL)
+		return false;
+	if (!ship_selected->is_placed())
+		return false;
 	for (Field* f : vec) {
 		if (f != NULL) {
-			if (f->x < 0 or f->y < 0 or f->x >= u.get_bSize() or f->y >= u.get_bSize()) {
+			if (f->x < 0 or f->y < 0 or f->x >= Utils::get_bSize() or f->y >= Utils::get_bSize()) {
 				return false;
 			}
 			for (Ship s : player_ships) {
@@ -222,7 +227,7 @@ vector<Field*> ShipSettingState::create_array(int middle_point_x, int middle_poi
 		for (int x = middle_point_x - 4; x < middle_point_x + 5; ++x) {
 			for (Field& f : ship_selected->getFieldsVector())
 				if (f.x == x && f.y == y) {
-					vec->push_back(new Field(f.x, f.y, player_board.get_x_offset(), player_board.get_y_offset(), u.get_fSize()));
+					vec->push_back(new Field(f.x, f.y, player_board.get_x_offset(), player_board.get_y_offset(), Utils::get_fSize()));
 					added = true;
 					break;
 				}
@@ -248,9 +253,8 @@ void ShipSettingState::place_ships_randomly(vector<Ship>& ships, Board& board) {
 		s.set_color(128, 255, 128);
 
 		while (true) {
-			cout << 1;
-			x_val_to_sub = rand() % ((min_x(s)) - (max_x(s) - u.get_bSize() + 1)) + (max_x(s) - u.get_bSize() + 1);
-			y_val_to_sub = rand() % ((min_y(s)) - (max_y(s) - u.get_bSize() + 1)) + (max_y(s) - u.get_bSize() + 1);
+			x_val_to_sub = rand() % ((min_x(s)) - (max_x(s) - Utils::get_bSize() + 1)) + (max_x(s) - Utils::get_bSize() + 1);
+			y_val_to_sub = rand() % ((min_y(s)) - (max_y(s) - Utils::get_bSize() + 1)) + (max_y(s) - Utils::get_bSize() + 1);
 			for (Field& f : s.getFieldsVector()) {
 				f.x -= x_val_to_sub;
 				f.y -= y_val_to_sub;
@@ -305,20 +309,17 @@ void ShipSettingState::assignStates(State** s, GameState* g, MenuState* m) {
 }
 
 void ShipSettingState::handle_ship_setting() {
-	if (u.get_space_pressed())
-		place_ships_randomly(player_ships, player_board);
-
 	// obracanie statku
-	if (u.get_mouse_clicked2() && guard2) {
+	if (Utils::get_mouse_clicked2() && guard2) {
 		rotate_ship();
 		guard2 = false;
 	}
-	else if (!u.get_mouse_clicked2()) {
+	else if (!Utils::get_mouse_clicked2()) {
 		guard2 = true;
 	}
 
 	// if wywolany tylko raz podczas klikniecia
-	if (u.get_mouse_clicked1() && guard1) { // jak nie jest zaznaczony statek i zostanie kliknieta myszka
+	if (Utils::get_mouse_clicked1() && guard1) { // jak nie jest zaznaczony statek i zostanie kliknieta myszka
 		ship_selected = select_ship(); // sproboj zaznaczyc statek
 		if (ship_selected != NULL) {
 			last_ship_position = ship_selected->getFieldsVector();
@@ -329,7 +330,7 @@ void ShipSettingState::handle_ship_setting() {
 		guard1 = false;
 	}
 	// wywolywane wieloktrotnie podczas przesuwania gdy myszka jest kliknieta
-	else if (ship_selected != NULL && u.get_mouse_clicked1()) {// jesli udalo sie zaznaczyc statek to przeciagaj go po ekranie
+	else if (ship_selected != NULL && Utils::get_mouse_clicked1()) {// jesli udalo sie zaznaczyc statek to przeciagaj go po ekranie
 		drag();
 		set_ships_coords();
 
@@ -361,8 +362,8 @@ void ShipSettingState::init_customizing_fields_vector() {
 void ShipSettingState::prepare_ships_for_setting() {
 	player_ships.clear();
 
-	for (char pattern : u.get_ship_pattern()) {
-		Ship* s = new Ship(u, player_board.get_fields(), pattern, 0, 0);
+	for (char pattern : Utils::get_ship_pattern()) {
+		Ship* s = new Ship(player_board.get_fields(), pattern, 0, 0);
 		player_ships.push_back(*s);
 		cpu_ships.push_back(*s);
 		icons.push_back(Icon(s));
@@ -375,21 +376,19 @@ void ShipSettingState::startGameButtonOnClick() {
 	place_ships_randomly(cpu_ships, computer_board);
 	player_board.setShips(player_ships);
 	computer_board.setShips(cpu_ships);
-	for (Ship& s : cpu_ships) {
-		for (Field& f : s.getFieldsVector())
-			cout << f.x << " " << f.y << " " << f.x_screen << " " << f.y_screen << endl;
-		cout << endl << endl;
-	}
+	gameState->get_cpu_player()->set_ship_templates(cpu_ships);
 	*state = gameState;
 }
 
 void ShipSettingState::menuButtonOnClick() {
 	*state = menuState;
+	cpu_ships.clear();
 }
 
 void ShipSettingState::confirmButtonOnClick() {
-	u.set_custom_ship_mode(false);
+	Utils::set_custom_ship_mode(false);
 	buttonsToDisplay = &shipSettingButtons;
+	place_ships_randomly(player_ships, player_board);
 }
 
 void ShipSettingState::createShipButtonOnClick() {
@@ -399,7 +398,7 @@ void ShipSettingState::createShipButtonOnClick() {
 		icons.push_back(Icon(ship_selected));
 		player_ships.push_back(*ship_selected);
 		cpu_ships.push_back(*ship_selected);
-		ship_selected = new Ship(u, vector<Field>{}, 'i', 0, 0);
+		ship_selected = new Ship(vector<Field>{}, 'i', 0, 0);
 	}
 }
 
@@ -447,24 +446,24 @@ void ShipSettingState::assignShipSettingButtonsFunctions() {
 void ShipSettingState::handle_buttons_events() {
 	for (Button* b : *buttonsToDisplay) {
 		//jeœli myszka najedzie na button
-		if (u.isMouseInRectangle(b->x, b->y, b->w, b->h) && !b->isActive && b->canBeClicked) {
-			if (u.get_sounds_on())
+		if (Utils::isMouseInRectangle(b->x, b->y, b->w, b->h) && !b->isActive && b->canBeClicked) {
+			if (Utils::get_sounds_on())
 				al_play_sample(selected, 1, 0, 1, ALLEGRO_PLAYMODE_ONCE, NULL);
 			b->isActive = true;
 		}
 		//jeœli myszka zjedzie z buttona
-		if (!u.isMouseInRectangle(b->x, b->y, b->w, b->h) && b->isActive) {
+		if (!Utils::isMouseInRectangle(b->x, b->y, b->w, b->h) && b->isActive) {
 			b->isActive = false;
 		}
 		//jeœli button zosanie wcisniety
-		if (b->isActive && b->canBeClicked && u.get_mouse_clicked1() && guard3) {
-			if (u.get_sounds_on())
+		if (b->isActive && b->canBeClicked && Utils::get_mouse_clicked1() && guard3) {
+			if (Utils::get_sounds_on())
 				al_play_sample(clicked, 1, 0, 1, ALLEGRO_PLAYMODE_ONCE, NULL);
 			b->onClickListener(b);
 			guard3 = false;
 		}
 
-		if (!u.get_mouse_clicked1())
+		if (!Utils::get_mouse_clicked1())
 			guard3 = true;
 	}
 	if (quantity1 == 0 and quantity2 == 0 and quantity3 == 0 and quantity4 == 0 and quantity5 == 0)
@@ -476,10 +475,10 @@ void ShipSettingState::handle_buttons_events() {
 void ShipSettingState::handle_ship_creation() {
 	field_selected = customizingBoard.getFieldSelectedByMouse();
 	manage_creation_buttons();
-	if (field_selected != NULL && u.get_mouse_clicked1() && can_append_field_to_ship(field_selected, ship_selected)) {
+	if (field_selected != NULL && Utils::get_mouse_clicked1() && can_append_field_to_ship(field_selected, ship_selected)) {
 		if (!ship_selected->field_in_vec(*field_selected, ship_selected->getFieldsVector())) {
-			Field* newField = new Field(field_selected->x, field_selected->y, customizingBoard.get_x_offset(), customizingBoard.get_y_offset(), u.get_fSize());
-			ship_selected->get_binary_representation().at(field_selected->y * customizingBoard.get_width() + field_selected->x) = 1;
+			Field* newField = new Field(field_selected->x, field_selected->y, customizingBoard.get_x_offset(), customizingBoard.get_y_offset(), Utils::get_fSize());
+			ship_selected->get_template().setElementByIndex(field_selected->y * customizingBoard.get_width() + field_selected->x, 1);
 			newField->set_color(255, 128, 0);
 			ship_selected->getFieldsVector().push_back(*newField);
 		}
@@ -535,11 +534,11 @@ bool ShipSettingState::can_append_field_to_ship(Field* f, Ship* s) {
 }
 
 void ShipSettingState::set_ships_quantity() {
-	quantity1 = u.get_quantity1();
-	quantity2 = u.get_quantity2();
-	quantity3 = u.get_quantity3();
-	quantity4 = u.get_quantity4();
-	quantity5 = u.get_quantity5();
+	quantity1 = Utils::get_quantity1();
+	quantity2 = Utils::get_quantity2();
+	quantity3 = Utils::get_quantity3();
+	quantity4 = Utils::get_quantity4();
+	quantity5 = Utils::get_quantity5();
 }
 
 unsigned ShipSettingState::max_ship_size_to_create() {
@@ -567,5 +566,15 @@ void ShipSettingState::substract_ship_quantity() {
 }
 
 void ShipSettingState::set_buttons_to_display() {
-	buttonsToDisplay = u.get_custom_ship_mode() ? &creationButtons : &shipSettingButtons;
+	buttonsToDisplay = Utils::get_custom_ship_mode() ? &creationButtons : &shipSettingButtons;
+}
+void ShipSettingState::reset() {
+	player_ships.clear();
+	cpu_ships.clear();
+	icons.clear();
+	customizingBoard.reset();
+	Utils::set_default_settings();
+	buttonsToDisplay = &creationButtons;
+	set_ships_quantity();
+	Icon::set_y_position(Utils::get_fSize());
 }

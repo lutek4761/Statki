@@ -1,6 +1,9 @@
 #include <allegro5/allegro.h>
 #include <allegro5/allegro_primitives.h>
-#include"Utils.h"
+#include <allegro5/allegro.h>
+#include <allegro5/allegro_acodec.h>
+#include <allegro5/allegro_audio.h>
+#include "Utils.h"
 #include "State.h"
 #include "MenuState.h"
 #include "GameState.h"
@@ -17,12 +20,28 @@ int main()
 	al_init_primitives_addon(); //Rysowanie kresek
 	al_install_keyboard();
 	al_install_mouse();
+	al_install_audio();
+	al_init_acodec_addon();
+	al_reserve_samples(4);
+	al_init_font_addon();
+	al_init_ttf_addon();
+	ALLEGRO_SAMPLE* clicked = al_load_sample("clicked.wav");
+	ALLEGRO_SAMPLE* selected = al_load_sample("selected.wav");
+	ALLEGRO_SAMPLE* hit = al_load_sample("Explosion1.wav");
+	ALLEGRO_SAMPLE* splash = al_load_sample("Splash.wav");
+	ALLEGRO_FONT* font30 = al_load_font("Arial.ttf", 30, 0);
+	ALLEGRO_FONT* font20 = al_load_font("Arial.ttf", 20, 0);
 
-	Utils u;
-	Board b1(u, u.get_bSize(), u.get_bSize(), u.get_fSize(), u.get_fSize());
-	Board b2(u, u.get_bSize(), u.get_bSize(), (u.get_bSize() +2) * u.get_fSize(), u.get_fSize());
+	Utils::set_clicked_sound(clicked);
+	Utils::set_selected_sound(selected);
+	Utils::set_hit_sound(hit);
+	Utils::set_splash_sound(splash);
+	Utils::set_font20(font20);
+	Utils::set_font30(font30);
+	Board b1(Utils::get_bSize(), Utils::get_bSize(), Utils::get_fSize(), Utils::get_fSize());
+	Board b2(Utils::get_bSize(), Utils::get_bSize(), (Utils::get_bSize() +2) * Utils::get_fSize(), Utils::get_fSize());
 
-	ALLEGRO_DISPLAY* display = al_create_display(u.get_dispWidth(), u.get_dispHeight()); //Obraz
+	ALLEGRO_DISPLAY* display = al_create_display(Utils::get_dispWidth(), Utils::get_dispHeight()); //Obraz
 	ALLEGRO_EVENT_QUEUE* queue = al_create_event_queue(); //Kolejka zdarzeñ
 	ALLEGRO_TIMER* timer = al_create_timer(1.0 / FPS); //Zegarek
 	al_register_event_source(queue, al_get_keyboard_event_source());
@@ -31,14 +50,15 @@ int main()
 	al_register_event_source(queue, al_get_timer_event_source(timer));
 
 	State* s;
-	GameState s_game(u, b1, b2);
-	MenuState s_menu(u);
-	ShipSettingState s_shipSet(u, b1, b2);
+	GameState s_game(b1, b2);
+	MenuState s_menu;
+	ShipSettingState s_shipSet(b1, b2);
 
 	s = &s_menu;
 
 	s_menu.assignStates(&s, &s_game, &s_shipSet);
 	s_shipSet.assignStates(&s, &s_game, &s_menu);
+	s_game.assignStates(&s, &s_menu, &s_shipSet);
 
 	al_start_timer(timer);
 	while (true) {
@@ -52,23 +72,26 @@ int main()
 
 		al_get_keyboard_state(&keyState);
 		al_get_mouse_state(&mouseState);
-
 		//**************INPUT********************
-		if (event.type == ALLEGRO_EVENT_MOUSE_BUTTON_DOWN && event.mouse.button & 1)
-			u.set_mouse_clicked1(true);
-		if (event.type == ALLEGRO_EVENT_MOUSE_BUTTON_UP && event.mouse.button & 1)
-			u.set_mouse_clicked1(false);
+		if (event.type == ALLEGRO_EVENT_MOUSE_BUTTON_DOWN && event.mouse.button & 1) 
+			Utils::set_mouse_clicked1(true);
+		if (event.type == ALLEGRO_EVENT_MOUSE_BUTTON_UP && event.mouse.button & 1) 
+			Utils::set_mouse_clicked1(false);
 		if (event.type == ALLEGRO_EVENT_MOUSE_BUTTON_DOWN && event.mouse.button & 2)
-			u.set_mouse_clicked2(true);
+			Utils::set_mouse_clicked2(true);
 		if (event.type == ALLEGRO_EVENT_MOUSE_BUTTON_UP && event.mouse.button & 2)
-			u.set_mouse_clicked2(false);
+			Utils::set_mouse_clicked2(false);
 		if (al_key_down(&keyState, ALLEGRO_KEY_SPACE))
-			u.set_space_pressed(true);
+			Utils::set_space_pressed(true);
 		else
-			u.set_space_pressed(false);
+			Utils::set_space_pressed(false);
+		if (al_key_down(&keyState, ALLEGRO_KEY_ESCAPE))
+			Utils::set_esc_pressed(true);
+		else
+			Utils::set_esc_pressed(false);
 		if (event.type == ALLEGRO_EVENT_MOUSE_AXES) {
-			u.set_mouseX(event.mouse.x);
-			u.set_mouseY(event.mouse.y);
+			Utils::set_mouseX(event.mouse.x);
+			Utils::set_mouseY(event.mouse.y);
 		}
 		//******KONIEC INPUTU***********************
 
@@ -83,7 +106,6 @@ int main()
 	al_uninstall_keyboard();
 	al_uninstall_mouse();
 	al_destroy_timer(timer);
-	u.~Utils();
 
 	return 0;
 }

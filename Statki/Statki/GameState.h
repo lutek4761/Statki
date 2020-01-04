@@ -5,10 +5,15 @@
 #include "Player.h"
 #include "HumanPlayer.h"
 #include "CpuPlayer.h"
+class MenuState;
+class ShipSettingState;
 class GameState : public State
 {
 private:
-	Utils& u;
+	State** state;
+	MenuState* menuState;
+	ShipSettingState* shipSettingState;
+
 	Board& player_board;
 	Board& computer_board;
 	CpuPlayer* cpu_player;
@@ -16,9 +21,11 @@ private:
 	Player* player_to_move;
 	Field* field_selected;
 public:
-	GameState(Utils& u, Board& b1, Board& b2);
+	GameState(Board& b1, Board& b2);
 	~GameState();
 	virtual void render();
 	virtual void tick();
+	CpuPlayer* get_cpu_player() { return cpu_player; }
+	void assignStates(State**, MenuState*, ShipSettingState*);
 };
 

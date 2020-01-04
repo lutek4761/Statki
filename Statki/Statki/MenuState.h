@@ -20,8 +20,6 @@ class MenuState : public State
 private:
 
 	bool guard, optionState, changedSettings, runForTheFirstTime;
-	Utils& u;
-	ALLEGRO_FONT* font30, * font20;
 	vector<Button*> mainMenuButtons;
 	vector<Button*> optionsMenuButtons;
 	vector<Button*>* buttonsToDisplay;
@@ -81,12 +79,12 @@ private:
 	void inc5ButtonOnClick();
 	void dec5ButtonOnClick();
 public:
-	MenuState(Utils& u);
+	MenuState();
 	~MenuState();
 	virtual void render();
 	virtual void tick();
 
-	void assingFunctions();
+	void assignFunctions();
 	void assignStates(State**, GameState*, ShipSettingState*);
 	bool getChangedShips() { return changedSettings; }
 

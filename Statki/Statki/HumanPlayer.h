@@ -9,13 +9,11 @@ class HumanPlayer : public Player
 	CpuPlayer** comp;
 	Field* field_selected;
 	Board& opponents_board;
-	Utils& u;
 
 	void draw_aim_icon(Field* f);
 public:
-
 	bool check_for_hit(Field* f, Board& b) const;
-	HumanPlayer(Utils& u, Board& opponents_board);
+	HumanPlayer(Board& opponents_board);
 	virtual void render();
 	virtual void tick();
 	void assgin_players(Player**, CpuPlayer**);

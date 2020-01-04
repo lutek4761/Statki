@@ -37,7 +37,6 @@ private:
 	int last_mouse_pos_x, last_mouse_pos_y;
 	int mouse_board_pos_x, mouse_board_pos_y;
 	unsigned quantity1, quantity2, quantity3, quantity4, quantity5;
-	Utils& u;
 
 	Board& player_board;
 	Board& computer_board;
@@ -89,7 +88,7 @@ private:
 	void substract_ship_quantity();
 	void manage_creation_buttons();
 public:
-	ShipSettingState(Utils& u, Board& b1, Board& b2);
+	ShipSettingState(Board& b1, Board& b2);
 	~ShipSettingState();
 	virtual void render();
 	virtual void tick();
@@ -102,5 +101,6 @@ public:
 	void init_customizing_fields_vector();
 	void set_ships_quantity();
 	void set_buttons_to_display();
+	void reset();
 
 };

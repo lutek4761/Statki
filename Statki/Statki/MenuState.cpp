@@ -4,17 +4,14 @@
 using namespace std;
 
 
-MenuState::MenuState(Utils& u)
-	:u(u), guard(true), optionState(false), rQuantity1(u.get_quantity1()), rQuantity2(u.get_quantity2()),
-	rQuantity3(u.get_quantity3()), rQuantity4(u.get_quantity4()), rQuantity5(u.get_quantity5()), changedSettings(false), runForTheFirstTime(true),
+MenuState::MenuState()
+	:guard(true), optionState(false), rQuantity1(Utils::get_quantity1()), rQuantity2(Utils::get_quantity2()),
+	rQuantity3(Utils::get_quantity3()), rQuantity4(Utils::get_quantity4()), rQuantity5(Utils::get_quantity5()), changedSettings(false), runForTheFirstTime(true),
 	rCustomShip(true)
 {
-	al_init_font_addon();
-	al_init_ttf_addon();
-	font30 = al_load_font("Arial.ttf", 30, 0);
-	font20 = al_load_font("Arial.ttf", 20, 0);
-	clicked = u.get_clicked_sound();
-	selected = u.get_selected_sound();
+	
+	clicked = Utils::get_clicked_sound();
+	selected = Utils::get_selected_sound();
 
 	/****************************************BUTTONS****************************************/
 	customCheckBox = Button(500, 75, 150, 50, "Custom Ships", ID::CUSTOMCHECKBOX);
@@ -41,7 +38,7 @@ MenuState::MenuState(Utils& u)
 	&inc5Button,&dec5Button,&backButton,&customCheckBox,&soundCheckBox,&applyButton, &showAdjacentFieldsCheckBox };
 
 	buttonsToDisplay = &mainMenuButtons;
-	assingFunctions();
+	assignFunctions();
 	handleIncDecButtons();
 }
 
@@ -57,53 +54,50 @@ void MenuState::render() {
 void MenuState::tick() {
 	for (Button* b : *buttonsToDisplay) {
 		//jeœli myszka najedzie na button
-		if (u.isMouseInRectangle(b->x, b->y, b->w, b->h) && !b->isActive && b->canBeClicked) {
-			if (u.get_sounds_on())
+		if (Utils::isMouseInRectangle(b->x, b->y, b->w, b->h) && !b->isActive && b->canBeClicked) {
+			if (Utils::get_sounds_on())
 				al_play_sample(selected, 1, 0, 1, ALLEGRO_PLAYMODE_ONCE, NULL);
 			b->isActive = true;
 		}
 		//jeœli myszka zjedzie z buttona
-		if (!u.isMouseInRectangle(b->x, b->y, b->w, b->h) && b->isActive) {
+		if (!Utils::isMouseInRectangle(b->x, b->y, b->w, b->h) && b->isActive) {
 			b->isActive = false;
 		}
 		//jeœli button zosanie wcisniety
-		if (b->isActive && b->canBeClicked && u.get_mouse_clicked1() && guard) {
-			if (u.get_sounds_on())
+		if (b->isActive && b->canBeClicked && Utils::get_mouse_clicked1() && guard) {
+			if (Utils::get_sounds_on())
 				al_play_sample(clicked, 1, 0, 1, ALLEGRO_PLAYMODE_ONCE, NULL);
 			b->onClickListener(b);
 			handleIncDecButtons();
 			guard = false;
 		}
 
-		if (!u.get_mouse_clicked1())
+		if (!Utils::get_mouse_clicked1())
 			guard = true;
 	}
 }
 
 void MenuState::resumeButtonOnClick() {
-	if (u.get_ship_setting_done())
-		*state = gameState;
-	else {
-		*state = shipSettingState;
-		shipSettingState->set_buttons_to_display();
-		if (shipSettingState->get_ship_selected() == NULL)
-			shipSettingState->set_ship_selected(new Ship(u, vector<Field>{}, 'i', 0, 0));
+	
+	*state = shipSettingState;
+	shipSettingState->set_buttons_to_display();
+	if (shipSettingState->get_ship_selected() == NULL)
+		shipSettingState->set_ship_selected(new Ship(vector<Field>{}, 'i', 0, 0));
 
-		if (u.get_custom_ship_mode() and (changedSettings or runForTheFirstTime)) {
-			shipSettingState->init_customizing_fields_vector();
-			shipSettingState->set_ships_quantity();
-			shipSettingState->delete_icons();
-		}
-		else if (changedSettings or runForTheFirstTime) {
-			shipSettingState->delete_icons();
-			shipSettingState->prepare_ships_for_setting();
-		}	
-		changedSettings = false;
+	if (Utils::get_custom_ship_mode() and (changedSettings or runForTheFirstTime)) {
+		shipSettingState->init_customizing_fields_vector();
+		shipSettingState->set_ships_quantity();
+		shipSettingState->delete_icons();
 	}
+	else if (changedSettings or runForTheFirstTime) {
+		shipSettingState->delete_icons();
+		shipSettingState->prepare_ships_for_setting();
+	}	
+	changedSettings = false;
 	runForTheFirstTime = false;
 }
 void MenuState::showAdjacentFieldsCheckBoxOnClick() {
-	u.set_show_adjacent_mode(!u.get_show_adjacent_mode());
+	Utils::set_show_adjacent_mode(!Utils::get_show_adjacent_mode());
 }
 void MenuState::applyButtonOnClick() {
 	applySettings();
@@ -114,7 +108,7 @@ void MenuState::customCheckBoxOnClick() {
 }
 
 void MenuState::soundCheckBoxOnClick() {
-	u.set_sounds_on(!u.get_sounds_on());
+	Utils::set_sounds_on(!Utils::get_sounds_on());
 }
 
 void MenuState::optionsButtonOnClick() {
@@ -130,61 +124,61 @@ void MenuState::exitButtonOnClick() {
 void MenuState::backButtonOnClick() {
 	buttonsToDisplay = &mainMenuButtons;
 	optionState = false;
-	u.reset_ship_pattern();
+	Utils::reset_ship_pattern();
 }
 
 void MenuState::inc1ButtonOnClick() {
 	rQuantity1++;
-	u.numberOfAvailableFields -= 9;
+	Utils::numberOfAvailableFields -= 9;
 }
 
 void MenuState::dec1ButtonOnClick() {
 	rQuantity1--;
-	u.numberOfAvailableFields += 9;
+	Utils::numberOfAvailableFields += 9;
 }
 
 void MenuState::inc2ButtonOnClick() {
 	rQuantity2++;
-	u.numberOfAvailableFields -= 12;
+	Utils::numberOfAvailableFields -= 12;
 }
 
 void MenuState::dec2ButtonOnClick() {
 	rQuantity2--;
-	u.numberOfAvailableFields += 12;
+	Utils::numberOfAvailableFields += 12;
 }
 
 void MenuState::inc3ButtonOnClick() {
 	rQuantity3++;
-	u.numberOfAvailableFields -= 15;
+	Utils::numberOfAvailableFields -= 15;
 }
 
 void MenuState::dec3ButtonOnClick() {
 	rQuantity3--;
-	u.numberOfAvailableFields += 15;
+	Utils::numberOfAvailableFields += 15;
 }
 
 void MenuState::inc4ButtonOnClick() {
 	rQuantity4++;
-	u.numberOfAvailableFields -= 18;
+	Utils::numberOfAvailableFields -= 18;
 }
 
 void MenuState::dec4ButtonOnClick() {
 	rQuantity4--;
-	u.numberOfAvailableFields += 18;
+	Utils::numberOfAvailableFields += 18;
 }
 
 void MenuState::inc5ButtonOnClick() {
 	rQuantity5++;
-	u.numberOfAvailableFields -= 21;
+	Utils::numberOfAvailableFields -= 21;
 }
 
 void MenuState::dec5ButtonOnClick() {
 	rQuantity5--;
-	u.numberOfAvailableFields += 21;
+	Utils::numberOfAvailableFields += 21;
 }
 
 
-void MenuState::assingFunctions() {
+void MenuState::assignFunctions() {
 	for (auto button : mainMenuButtons) {
 		button->onClickListener = [this](Button* btn) {
 			switch (btn->getId()) {
@@ -256,25 +250,25 @@ void MenuState::assingFunctions() {
 
 void MenuState::drawOtherMenuStuffs() {
 	al_draw_rectangle(25, 25, 475, 450, al_map_rgb(255, 0, 0), 2);
-	al_draw_textf(font30, al_map_rgb(255, 255, 255), 270, 60, 0, "%d", rQuantity1);
-	al_draw_textf(font30, al_map_rgb(255, 255, 255), 270, 140, 0, "%d", rQuantity2);
-	al_draw_textf(font30, al_map_rgb(255, 255, 255), 270, 220, 0, "%d", rQuantity3);
-	al_draw_textf(font30, al_map_rgb(255, 255, 255), 270, 300, 0, "%d", rQuantity4);
-	al_draw_textf(font30, al_map_rgb(255, 255, 255), 270, 380, 0, "%d", rQuantity5);
+	al_draw_textf(Utils::get_font_30(), al_map_rgb(255, 255, 255), 270, 60, 0, "%d", rQuantity1);
+	al_draw_textf(Utils::get_font_30(), al_map_rgb(255, 255, 255), 270, 140, 0, "%d", rQuantity2);
+	al_draw_textf(Utils::get_font_30(), al_map_rgb(255, 255, 255), 270, 220, 0, "%d", rQuantity3);
+	al_draw_textf(Utils::get_font_30(), al_map_rgb(255, 255, 255), 270, 300, 0, "%d", rQuantity4);
+	al_draw_textf(Utils::get_font_30(), al_map_rgb(255, 255, 255), 270, 380, 0, "%d", rQuantity5);
 
-	al_draw_textf(font20, al_map_rgb(255, 255, 255), 550, 25, 0, "Available fields: %d", u.numberOfAvailableFields);
-	al_draw_textf(font30, al_map_rgb(255, 255, 255), 675, 75, 0, "%s", rCustomShip ? "ON" : "OFF");
-	al_draw_textf(font30, al_map_rgb(255, 255, 255), 675, 150, 0, "%s", u.get_sounds_on() ? "ON" : "OFF");
-	al_draw_textf(font30, al_map_rgb(255, 255, 255), 675, 225, 0, "%s", u.get_show_adjacent_mode() ? "ON" : "OFF");
+	al_draw_textf(Utils::get_font_20(), al_map_rgb(255, 255, 255), 550, 25, 0, "Available fields: %d", Utils::numberOfAvailableFields);
+	al_draw_textf(Utils::get_font_30(), al_map_rgb(255, 255, 255), 675, 75, 0, "%s", rCustomShip ? "ON" : "OFF");
+	al_draw_textf(Utils::get_font_30(), al_map_rgb(255, 255, 255), 675, 150, 0, "%s", Utils::get_sounds_on() ? "ON" : "OFF");
+	al_draw_textf(Utils::get_font_30(), al_map_rgb(255, 255, 255), 675, 225, 0, "%s", Utils::get_show_adjacent_mode() ? "ON" : "OFF");
 
-	al_draw_text(font30, al_map_rgb(255, 255, 255), 40, 60, 0, "One-masted ship: "); // 1
-	al_draw_text(font30, al_map_rgb(255, 255, 255), 40, 140, 0, "Two-masted ship: "); // 2
-	al_draw_text(font30, al_map_rgb(255, 255, 255), 40, 220, 0, "Three-masted ship: "); // 3
-	al_draw_text(font30, al_map_rgb(255, 255, 255), 40, 300, 0, "Four-masted ship: "); // 4
-	al_draw_text(font30, al_map_rgb(255, 255, 255), 40, 380, 0, "Five-masted ship: "); // 5
+	al_draw_text(Utils::get_font_30(), al_map_rgb(255, 255, 255), 40, 60, 0, "One-masted ship: "); // 1
+	al_draw_text(Utils::get_font_30(), al_map_rgb(255, 255, 255), 40, 140, 0, "Two-masted ship: "); // 2
+	al_draw_text(Utils::get_font_30(), al_map_rgb(255, 255, 255), 40, 220, 0, "Three-masted ship: "); // 3
+	al_draw_text(Utils::get_font_30(), al_map_rgb(255, 255, 255), 40, 300, 0, "Four-masted ship: "); // 4
+	al_draw_text(Utils::get_font_30(), al_map_rgb(255, 255, 255), 40, 380, 0, "Five-masted ship: "); // 5
 
 	if (applyButton.isActive)
-		al_draw_text(font20, al_map_rgb(255, 255, 255), 525, 450, 0, "This will reset your ships. ");
+		al_draw_text(Utils::get_font_20(), al_map_rgb(255, 255, 255), 525, 450, 0, "This will reset your ships. ");
 
 }
 
@@ -285,11 +279,11 @@ void MenuState::handleIncDecButtons() {
 	dec4Button.canBeClicked = (rQuantity4 == 0) ? false : true;
 	dec5Button.canBeClicked = (rQuantity5 == 0) ? false : true;
 
-	inc1Button.canBeClicked = (u.numberOfAvailableFields < 9) ? false : true;
-	inc2Button.canBeClicked = (u.numberOfAvailableFields < 12) ? false : true;
-	inc3Button.canBeClicked = (u.numberOfAvailableFields < 15) ? false : true;
-	inc4Button.canBeClicked = (u.numberOfAvailableFields < 18) ? false : true;
-	inc5Button.canBeClicked = (u.numberOfAvailableFields < 21) ? false : true;
+	inc1Button.canBeClicked = (Utils::numberOfAvailableFields < 9) ? false : true;
+	inc2Button.canBeClicked = (Utils::numberOfAvailableFields < 12) ? false : true;
+	inc3Button.canBeClicked = (Utils::numberOfAvailableFields < 15) ? false : true;
+	inc4Button.canBeClicked = (Utils::numberOfAvailableFields < 18) ? false : true;
+	inc5Button.canBeClicked = (Utils::numberOfAvailableFields < 21) ? false : true;
 }
 
 void MenuState::assignStates(State** s, GameState* g, ShipSettingState* ss) {
@@ -299,27 +293,28 @@ void MenuState::assignStates(State** s, GameState* g, ShipSettingState* ss) {
 }
 
 void MenuState::rememberSettings() {
-	rQuantity1 = u.get_quantity1();
-	rQuantity2 = u.get_quantity2();
-	rQuantity3 = u.get_quantity3();
-	rQuantity4 = u.get_quantity4();
-	rQuantity5 = u.get_quantity5();
-	rCustomShip = u.get_custom_ship_mode();
+	rQuantity1 = Utils::get_quantity1();
+	rQuantity2 = Utils::get_quantity2();
+	rQuantity3 = Utils::get_quantity3();
+	rQuantity4 = Utils::get_quantity4();
+	rQuantity5 = Utils::get_quantity5();
+	rCustomShip = Utils::get_custom_ship_mode();
 }
 
 void MenuState::applySettings() {
-	if (rQuantity1 != u.get_quantity1() ||
-		rQuantity2 != u.get_quantity2() ||
-		rQuantity3 != u.get_quantity3() ||
-		rQuantity4 != u.get_quantity4() ||
-		rQuantity5 != u.get_quantity5() ||
-		rCustomShip != u.get_custom_ship_mode()) {
-		u.set_quantity1(rQuantity1);
-		u.set_quantity2(rQuantity2);
-		u.set_quantity3(rQuantity3);
-		u.set_quantity4(rQuantity4);
-		u.set_quantity5(rQuantity5);
-		u.set_custom_ship_mode(rCustomShip);
+	if (rQuantity1 != Utils::get_quantity1() ||
+		rQuantity2 != Utils::get_quantity2() ||
+		rQuantity3 != Utils::get_quantity3() ||
+		rQuantity4 != Utils::get_quantity4() ||
+		rQuantity4 != Utils::get_quantity4() ||
+		rQuantity5 != Utils::get_quantity5() ||
+		rCustomShip != Utils::get_custom_ship_mode()) {
+		Utils::set_quantity1(rQuantity1);
+		Utils::set_quantity2(rQuantity2);
+		Utils::set_quantity3(rQuantity3);
+		Utils::set_quantity4(rQuantity4);
+		Utils::set_quantity5(rQuantity5);
+		Utils::set_custom_ship_mode(rCustomShip);
 		changedSettings = true;
 		shipSettingState->get_ships().clear();
 		if (shipSettingState->get_ship_selected() != NULL)

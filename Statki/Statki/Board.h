@@ -9,12 +9,11 @@ class Board
 private:
 
 	int x_offset, y_offset, width, height;
-	Utils& u;
 	vector<Field> fields;
 	vector<Ship> ships;
 
 public:
-	Board(Utils& u, int width, int height, int x_offset, int y_offset);
+	Board(int width, int height, int x_offset, int y_offset);
 	void init_vec();
 	void render();
 	void render_ships();
@@ -26,5 +25,6 @@ public:
 	vector<Ship>& getShips() { return ships; }
 	void setShips(vector<Ship> val) { ships.clear(); for (Ship& s : val) ships.push_back(s); }
 	Field* getFieldSelectedByMouse();
+	void reset();
 };
 

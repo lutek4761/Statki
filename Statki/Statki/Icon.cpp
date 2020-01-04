@@ -13,7 +13,7 @@ void Icon::tick() {
 void Icon::render() {
 	al_draw_rectangle(x, y, x + 40, y + 40, al_map_rgb(255, 0, 0), 2);
 	if (ship_pointer != NULL) {
-		vector<int> vec = ship_pointer->get_binary_representation();
+		vector<int> vec = ship_pointer->get_template().getTemplateVector();
 		for (int yy = 0; yy < 5; yy++)
 			for (int xx = 0; xx < 5; xx++)
 				if (vec.at(yy * 5 + xx) == 1)

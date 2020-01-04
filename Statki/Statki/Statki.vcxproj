@@ -151,6 +151,7 @@
     <ClCompile Include="Player.cpp" />
     <ClCompile Include="Ship.cpp" />
     <ClCompile Include="ShipSettingState.cpp" />
+    <ClCompile Include="ShipTemplate.cpp" />
     <ClCompile Include="State.cpp" />
     <ClCompile Include="Utils.cpp" />
   </ItemGroup>
@@ -168,6 +169,7 @@
     <ClInclude Include="Player.h" />
     <ClInclude Include="Ship.h" />
     <ClInclude Include="ShipSettingState.h" />
+    <ClInclude Include="ShipTemplate.h" />
     <ClInclude Include="State.h" />
     <ClInclude Include="Utils.h" />
   </ItemGroup>
